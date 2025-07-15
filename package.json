@@ -1,0 +1,46 @@
+{
+  "name": "passingly-informed",
+  "version": "3.0.0",
+  "description": "Automated sports digest generator for people who don't care about sports but want to sound like they do",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js",
+    "daemon": "node index.js daemon",
+    "admin": "node index.js admin",
+    "collect": "node index.js collect",
+    "digest": "node index.js digest",
+    "test": "node test.js",
+    "dev": "node --watch index.js",
+    "create-user": "node -e \"import('./userManager.js').then(m => m.createUser())\"",
+    "list-users": "node -e \"import('./userManager.js').then(m => m.listUsers())\"",
+    "test-groq": "node -e \"import('./groqClient.js').then(m => m.testGroqConnection(process.env.GROQ_API_KEY))\"",
+    "test-zip": "node -e \"import('./zip_lookup.js').then(m => m.testZipLookup())\"",
+    "legacy": "node index.js legacy",
+    "setup": "npm install && echo 'Copy .env.template to .env and add your API keys'"
+  },
+  "keywords": [
+    "sports",
+    "news",
+    "digest",
+    "newsletter",
+    "ai",
+    "automation",
+    "cron",
+    "weekly"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "dependencies": {
+    "node-fetch": "^3.3.2",
+    "cheerio": "^1.0.0-rc.12",
+    "dotenv": "^16.3.1",
+    "node-cron": "^3.0.3"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

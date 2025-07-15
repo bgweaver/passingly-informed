@@ -1,0 +1,13 @@
+# Ignore data folder
+data/
+
+# Ignore output folder
+output/
+
+# Ignore environment variables file
+.env
+
+# Ignore node_modules (huge folder of dependencies)
+node_modules/
+cheerio
+node-fetch
