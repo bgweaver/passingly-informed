@@ -2,7 +2,7 @@
 data/
 
 # Ignore output folder
-output/
+outputs/
 
 # Ignore environment variables file
 .env
