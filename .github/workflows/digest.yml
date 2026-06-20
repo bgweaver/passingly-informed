@@ -48,6 +48,13 @@ jobs:
           GROQ_MODEL: ${{ vars.GROQ_MODEL }}
         run: python3 passingly_informed.py --build ./site
 
+      # The daily rebuild republishes ./site wholesale. GitHub's custom-domain
+      # marker is a CNAME file inside the published folder; if it's missing, a
+      # deploy can silently unset the domain. So write it every run. Change this
+      # one line if the domain ever changes.
+      - name: Keep custom domain on every deploy
+        run: echo "www.passinglyinformed.com" > ./site/CNAME
+
       - uses: actions/upload-pages-artifact@v3
         with:
           path: ./site
