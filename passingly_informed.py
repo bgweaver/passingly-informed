@@ -702,17 +702,22 @@ def build_facts(entry, today, offline_events=None, offline_standings=None,
             data = {}
         res = parse_leaders(data, cfg["stat"], tracked_by_path.get(p, []))
         ll = res.get("league_leader")
-        if ll:
+        tracked = res.get("tracked", [])
+        local_is_leader = bool(ll and any(t["player"] == ll["player"] for t in tracked))
+        # Local stars (excluding the one who IS the league leader -- reported below).
+        local_facts = [
+            {"kind": "leader", "scope": "local", "league": cfg["league"],
+             "stat": cfg["label"], "unit": cfg["unit"], **t}
+            for t in tracked if not (ll and t["player"] == ll["player"])
+        ]
+        # The generic league leader earns a line ONLY when it has a local hook
+        # (the leader plays for our team) or there's no local star to talk about.
+        # Otherwise it's just trivia about a player nobody here follows.
+        if ll and (local_is_leader or not local_facts):
             facts.append({"kind": "leader", "scope": "league",
                           "league": cfg["league"], "stat": cfg["label"],
                           "unit": cfg["unit"], **ll})
-        for tr in res.get("tracked", []):
-            # Skip the redundant case where the local star IS the league leader.
-            if ll and tr["player"] == ll["player"]:
-                continue
-            facts.append({"kind": "leader", "scope": "local",
-                          "league": cfg["league"], "stat": cfg["label"],
-                          "unit": cfg["unit"], **tr})
+        facts.extend(local_facts)
 
     # Enrich team facts with standings: seed, conference, and (preferring the
     # standings table's record over a possibly-older scoreboard record).
@@ -760,11 +765,13 @@ SYSTEM_PROMPT = (
     "- No predictions, no opinions, no tactics, no stats. The reader cannot "
     "defend any of it.\n\n"
     "HOW TO WRITE THE LINES:\n"
-    "- ONE distinct topic per line. Never spend two lines on the same team or "
-    "event. If a team has both a recent result and an upcoming game, that is "
-    "still ONE line (e.g. 'lost to Atlanta last night, rematch today'). Fold any "
-    "background -- a star player, why a team matters -- INTO that team's single "
-    "line, never as its own line.\n"
+    "- ONE topic per line -- and a team and its OWN players are the SAME topic. "
+    "If you have a game/standing fact for the Fever AND a `leader` stat for a "
+    "Fever player, you MUST combine them into a single flowing line, never two "
+    "separate ones. Example: 'The Fever are 9-6, third in the East, and Caitlin "
+    "Clark's a big part of it -- about 21 a game.' A team's recent result and "
+    "next game also combine into one line ('lost to Atlanta last night, rematch "
+    "today'). The goal is connected talk, not a stack of disconnected facts.\n"
     "- Every question must hand the floor to the OTHER person -- the one who "
     "actually follows sports. Good: 'Did you catch the Fever game?' / 'Are they "
     "usually better than that?' / 'Worth watching this year?' These let the fan "
