@@ -1,0 +1,11 @@
+# Secrets — NEVER commit these. Your Groq key lives here locally.
+.env
+
+# Local cache + build output
+*.sqlite
+site/
+sample_page_preview.html
+
+# Python
+__pycache__/
+*.pyc

@@ -1,0 +1,63 @@
+name: Daily digest
+
+# WHAT THIS DOES
+#   Every morning it runs the generator once, which produces site/index.html and
+#   site/digest.json, then publishes that folder to GitHub Pages. One generation
+#   a day, shared by every visitor. That "once a day" schedule IS the rate limit
+#   that keeps your Groq usage near zero.
+#
+# DST NOTE
+#   GitHub cron is always UTC and cannot do timezones. 11:30 UTC is 7:30am during
+#   Eastern Daylight Time and 6:30am during Eastern Standard Time -- early enough
+#   either way. Adjust the minute/hour if you want, or add a second line.
+
+on:
+  schedule:
+    - cron: "30 11 * * *"
+  workflow_dispatch: {}   # lets you trigger a run by hand from the Actions tab
+
+# Least privilege: only what Pages deployment needs.
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# If a manual run overlaps the scheduled one, let the newer finish.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Generate today's digest
+        env:
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          # Optional overrides -- set these as repo secrets/variables if you want.
+          # Leaving them unset is fine; the page just hides those bits.
+          TIP_URL: ${{ vars.TIP_URL }}
+          SOURCE_URL: ${{ vars.SOURCE_URL }}
+          FORM_ENDPOINT: ${{ secrets.FORM_ENDPOINT }}
+          GROQ_MODEL: ${{ vars.GROQ_MODEL }}
+        run: python3 passingly_informed.py --build ./site
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
