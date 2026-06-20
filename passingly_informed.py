@@ -123,8 +123,10 @@ REGISTRY = {
         "label": "Indianapolis",
         "teams": [
             # Pro teams in town.
-            {"path": "basketball/nba", "league": "NBA", "name": "Indiana Pacers"},
-            {"path": "basketball/wnba", "league": "WNBA", "name": "Indiana Fever"},
+            {"path": "basketball/nba", "league": "NBA", "name": "Indiana Pacers",
+             "players": ["Tyrese Haliburton", "Pascal Siakam"]},
+            {"path": "basketball/wnba", "league": "WNBA", "name": "Indiana Fever",
+             "players": ["Caitlin Clark", "Aliyah Boston"]},
             {"path": "football/nfl", "league": "NFL", "name": "Indianapolis Colts"},
             {"path": "soccer/usa.usl.1", "league": "USL Championship",
              "name": "Indy Eleven"},
@@ -212,6 +214,36 @@ def fetch_scoreboard(path, day):
         sys.stderr.write("  ! fetch failed %s %s: %s\n" % (path, day, e))
         return []
 
+
+# Standings live on /apis/v2/ (NOT /apis/site/v2/, which returns a stub).
+STANDINGS_BASE = "https://site.api.espn.com/apis/v2/sports"
+
+
+def fetch_standings(path):
+    """Fetch a league's standings table. Returns the raw dict, or {} on failure."""
+    url = "%s/%s/standings" % (STANDINGS_BASE, path)
+    try:
+        return http_get_json(url)
+    except (urllib.error.URLError, urllib.error.HTTPError, ValueError, TimeoutError) as e:
+        sys.stderr.write("  ! standings fetch failed %s: %s\n" % (path, e))
+        return {}
+
+
+# Player stat leaderboards (e.g. scoring) live on the common/v3 host.
+LEADERS_BASE = "https://site.web.api.espn.com/apis/common/v3/sports"
+
+
+def fetch_leaders(path, sort, limit=50):
+    """Fetch a league's per-athlete stat leaderboard, already sorted. Returns the
+    raw dict or {} on failure."""
+    url = "%s/%s/statistics/byathlete?sort=%s&limit=%d" % (
+        LEADERS_BASE, path, sort.replace(":", "%3A"), limit)
+    try:
+        return http_get_json(url)
+    except (urllib.error.URLError, urllib.error.HTTPError, ValueError, TimeoutError) as e:
+        sys.stderr.write("  ! leaders fetch failed %s: %s\n" % (path, e))
+        return {}
+
 # ---------------------------------------------------------------------------
 # Parsing  (pure functions — no network — so --selftest can exercise them)
 # ---------------------------------------------------------------------------
@@ -256,6 +288,20 @@ def _team_name(c):
     return (c.get("team") or {}).get("displayName", "")
 
 
+def _overall_record(c):
+    """Pull a team's overall season win-loss (e.g. '12-4') from a scoreboard
+    competitor. ESPN embeds it here, so no extra fetch is needed. Returns the
+    summary string, or None if not present."""
+    recs = c.get("records") or []
+    for r in recs:
+        if r.get("name") in ("overall", "total") or r.get("type") in ("total", "overall"):
+            if r.get("summary"):
+                return r["summary"]
+    if recs and recs[0].get("summary"):
+        return recs[0]["summary"]
+    return None
+
+
 def parse_team_games(events, team_name, league_label, today):
     """Phrasing-ready facts for one team: at most the most-recent result and the
     soonest upcoming game. Caps noise for teams that play most days (NBA), and
@@ -279,6 +325,7 @@ def parse_team_games(events, team_name, league_label, today):
         them = next(c for c in comps if _team_name(c) != team_name)
         opp = _team_name(them) or "their opponent"
         home = us.get("homeAway") == "home"
+        record = _overall_record(us)
 
         if state == "post" and status.get("completed"):
             try:
@@ -297,7 +344,7 @@ def parse_team_games(events, team_name, league_label, today):
             results.append((edt, {
                 "kind": "result", "league": league_label, "team": team_name,
                 "won": won, "tie": tie, "opponent": opp, "score": score,
-                "when": when,
+                "record": record, "when": when,
             }))
         elif state in ("pre", "in"):
             if when in ("today", "tonight") and edt.hour >= 17:
@@ -305,8 +352,8 @@ def parse_team_games(events, team_name, league_label, today):
             upcoming.append((edt, {
                 "kind": "live" if state == "in" else "upcoming",
                 "league": league_label, "team": team_name,
-                "opponent": opp, "home": home, "when": when,
-                "time": fmt_time(edt),
+                "opponent": opp, "home": home, "record": record,
+                "when": when, "time": fmt_time(edt),
             }))
 
     out = []
@@ -365,15 +412,229 @@ def parse_event_matches(events, event_label, today, prefer=()):
         out = [{"kind": "event_active", "event": event_label}]
     return out
 
+
+def _event_round(ev):
+    """If this is a postseason/championship game, return a round label (e.g.
+    'NBA Finals'); else None. ESPN marks postseason with season type 3 and often
+    a notes headline naming the round."""
+    season_type = (ev.get("season") or {}).get("type")
+    comp = (ev.get("competitions") or [{}])[0]
+    notes = comp.get("notes") or []
+    headline = ((notes[0].get("headline") if notes else "") or "").strip()
+    if headline:
+        return headline
+    if season_type == 3:
+        return "playoffs"
+    return None
+
+
+def parse_national_event(events, league_label, today):
+    """Surface a major league's POSTSEASON games (the Finals, Super Bowl, World
+    Series, Stanley Cup) regardless of any local team. Regular-season games are
+    ignored, so this only speaks up when it's a moment everyone's talking about."""
+    results, upcoming = [], []
+    for ev in events:
+        rnd = _event_round(ev)
+        if not rnd:
+            continue
+        comps = _competitors(ev)
+        if len(comps) != 2:
+            continue
+        try:
+            edt = _parse_iso_to_eastern(ev.get("date", ""))
+        except Exception:
+            continue
+        when = relative_day(edt.date(), today)
+        a, b = _team_name(comps[0]), _team_name(comps[1])
+        status = ((ev.get("status") or {}).get("type") or {})
+        state = status.get("state")
+        # Avoid "NBA NBA Finals" if the headline already names the league.
+        round_label = rnd if league_label.lower() in rnd.lower() else \
+            "%s %s" % (league_label, rnd)
+
+        if state == "post" and status.get("completed"):
+            try:
+                sa = int(comps[0].get("score", 0))
+                sb = int(comps[1].get("score", 0))
+                if sa == sb:
+                    detail = "%s and %s drew %d-%d" % (a, b, sa, sb)
+                elif sa > sb:
+                    detail = "%s beat %s %d-%d" % (a, b, sa, sb)
+                else:
+                    detail = "%s beat %s %d-%d" % (b, a, sb, sa)
+            except (TypeError, ValueError):
+                detail = "%s vs %s" % (a, b)
+            results.append((edt, {"kind": "marquee", "league": league_label,
+                                  "round": round_label, "detail": detail,
+                                  "when": when}))
+        elif state in ("pre", "in"):
+            upcoming.append((edt, {"kind": "marquee", "league": league_label,
+                                   "round": round_label,
+                                   "detail": "%s vs %s" % (a, b),
+                                   "when": when, "time": fmt_time(edt)}))
+
+    out = []
+    if results:
+        out.append(max(results, key=lambda x: x[0])[1])   # most recent
+    if upcoming:
+        out.append(min(upcoming, key=lambda x: x[0])[1])   # soonest
+    return out
+
+
+def _ordinal(n):
+    """1 -> '1st', 2 -> '2nd', 11 -> '11th', etc."""
+    if n is None:
+        return None
+    if 10 <= (n % 100) <= 20:
+        suf = "th"
+    else:
+        suf = {1: "st", 2: "nd", 3: "rd"}.get(n % 10, "th")
+    return "%d%s" % (n, suf)
+
+
+def _stat_value(stats, name):
+    for s in stats:
+        if s.get("name") == name:
+            return s.get("value", s.get("displayValue"))
+    return None
+
+
+def parse_standings(data, season_year):
+    """Build {team_displayName: {seed, conference, record}} from a standings
+    table. Guards on season year so a stale offseason table (last season's final
+    standings) is ignored. Verified against ESPN's WNBA standings shape:
+    children[] (conferences) -> standings.entries[] -> stats[] keyed by name."""
+    out = {}
+    children = data.get("children")
+    # Some leagues expose a single flat table instead of conference children.
+    groups = children if children else [data]
+    for child in groups:
+        standings = child.get("standings") or {}
+        season = standings.get("season")
+        # Reject only clearly-stale tables. Leagues that span two calendar years
+        # (NBA, NHL, NFL) may label a season by its start year, so allow +/-1.
+        # The real freshness guard is that standings only attach to teams with a
+        # game in the current window.
+        if season_year is not None and season is not None \
+                and abs(season - season_year) > 1:
+            continue
+        conf = child.get("name") or child.get("abbreviation") or ""
+        for e in (standings.get("entries") or []):
+            name = (e.get("team") or {}).get("displayName")
+            if not name:
+                continue
+            stats = e.get("stats") or []
+            wins = _stat_value(stats, "wins")
+            losses = _stat_value(stats, "losses")
+            seed = _stat_value(stats, "playoffSeed")
+            rec = None
+            if wins is not None and losses is not None:
+                rec = "%d-%d" % (int(wins), int(losses))
+            out[name] = {
+                "seed": int(seed) if seed is not None else None,
+                "conference": conf if children else None,
+                "record": rec,
+            }
+    return out
+
+
+def _athlete_stat(athlete_entry, top_index_by_cat, stat_name):
+    """Read one stat value (display string) for one athlete from a byathlete
+    entry. Handles both layouts: a per-athlete category that carries its own
+    `names`, or one whose `values`/`displayValues` align to the top-level
+    category column order. Returns a display string or None."""
+    cats = athlete_entry.get("categories") or athlete_entry.get("statistics") or []
+    for c in cats:
+        names = c.get("names")
+        dv = c.get("displayValues") or []
+        vv = c.get("values") or []
+        if names and stat_name in names:
+            i = names.index(stat_name)
+            if i < len(dv):
+                return str(dv[i])
+            if i < len(vv):
+                return str(vv[i])
+        cat_name = c.get("name")
+        if cat_name in top_index_by_cat:
+            i = top_index_by_cat[cat_name]
+            if i < len(dv):
+                return str(dv[i])
+            if i < len(vv):
+                return str(vv[i])
+    return None
+
+
+def parse_leaders(data, stat_name, tracked_names):
+    """From a sorted byathlete leaderboard, return the league leader plus any
+    tracked local players (by display name), each with rank, value, and team.
+    Athletes arrive already sorted by the API, so list position is the rank."""
+    athletes = data.get("athletes") or []
+
+    # Map each top-level category name -> the column index of stat_name in it.
+    top_index_by_cat = {}
+    for c in (data.get("categories") or []):
+        names = c.get("names") or []
+        if stat_name in names:
+            top_index_by_cat[c.get("name")] = names.index(stat_name)
+
+    tracked_set = set(tracked_names or [])
+    league_leader, tracked = None, []
+    for i, entry in enumerate(athletes):
+        ath = entry.get("athlete") or {}
+        name = ath.get("displayName")
+        team = ath.get("teamName")
+        if not name:
+            continue
+        val = _athlete_stat(entry, top_index_by_cat, stat_name)
+        if val is None:
+            continue
+        rank = i + 1  # API already sorted descending
+        if league_leader is None:
+            league_leader = {"player": name, "team": team, "value": val, "rank": rank}
+        if name in tracked_set:
+            tracked.append({"player": name, "team": team, "value": val, "rank": rank})
+    return {"league_leader": league_leader, "tracked": tracked}
+
 # ---------------------------------------------------------------------------
 # Build the day's facts for a city
 # ---------------------------------------------------------------------------
 
-def build_facts(entry, today, offline_events=None):
+# Leagues where a standings table is meaningful and the shape is verified. (Pro
+# only for now; college "rank in a 350-team field" isn't a clean talking point.)
+STANDINGS_LEAGUES = {
+    "basketball/nba", "basketball/wnba", "football/nfl",
+    "baseball/mlb", "hockey/nhl",
+}
+
+# Leagues where we surface a player stat leader (scoring). Each: the byathlete
+# sort key, the stat field to read, a league label, and human wording. Only
+# fetched when the league is in season (a game in the window).
+LEADER_LEAGUES = {
+    "basketball/wnba": {"sort": "offensive.avgPoints:desc", "stat": "avgPoints",
+                        "league": "WNBA", "label": "scoring", "unit": "a game"},
+    "basketball/nba": {"sort": "offensive.avgPoints:desc", "stat": "avgPoints",
+                       "league": "NBA", "label": "scoring", "unit": "a game"},
+}
+
+# National marquee events: surfaced for EVERY city, no local team required, but
+# ONLY their postseason games (Super Bowl, NBA Finals, World Series, Stanley Cup).
+# Regular-season games in these leagues are ignored here -- the team registry
+# already handles "did my local team play." nba/nfl paths overlap the Indy
+# registry, so they're fetched once and parsed twice (team filter + postseason).
+NATIONAL_EVENTS = [
+    {"path": "basketball/nba", "league": "NBA"},
+    {"path": "football/nfl", "league": "NFL"},
+    {"path": "baseball/mlb", "league": "MLB"},
+    {"path": "hockey/nhl", "league": "NHL"},
+]
+
+
+def build_facts(entry, today, offline_events=None, offline_standings=None,
+                offline_leaders=None):
     """Fetch each unique league ONCE over a short window, then parse per team.
     Many teams share a league (four colleges all play basketball), so fetching
     per unique path instead of per team avoids hammering the same endpoint.
-    offline_events: optional {path: events} to bypass the network (selftest)."""
+    offline_* : optional dicts to bypass the network (tests)."""
     # yesterday catches last night's result; +3 catches the upcoming weekend for
     # weekly sports like college football without flooding daily sports.
     window = [today + timedelta(days=d) for d in (-1, 0, 1, 2, 3)]
@@ -383,6 +644,9 @@ def build_facts(entry, today, offline_events=None):
         if t["path"] not in paths:
             paths.append(t["path"])
     for e in entry.get("events", []):
+        if e["path"] not in paths:
+            paths.append(e["path"])
+    for e in NATIONAL_EVENTS:
         if e["path"] not in paths:
             paths.append(e["path"])
 
@@ -396,6 +660,19 @@ def build_facts(entry, today, offline_events=None):
                 evs.extend(fetch_scoreboard(p, d))
             events_by_path[p] = evs
 
+    # Standings (position + record) for the pro leagues this city has teams in.
+    # Fetched once per league; the season-year guard drops stale offseason tables.
+    standings_leagues = [p for p in paths if p in STANDINGS_LEAGUES]
+    standing_by_team = {}
+    for p in standings_leagues:
+        if offline_standings is not None:
+            data = offline_standings.get(p, {})
+        elif offline_events is None:
+            data = fetch_standings(p)
+        else:
+            data = {}  # offline events mode without standings -> skip network
+        standing_by_team.update(parse_standings(data, today.year))
+
     facts = []
     for t in entry["teams"]:
         facts.extend(parse_team_games(
@@ -404,6 +681,51 @@ def build_facts(entry, today, offline_events=None):
         facts.extend(parse_event_matches(
             events_by_path.get(e["path"], []), e["league"], today,
             prefer=e.get("prefer", ())))
+    for e in NATIONAL_EVENTS:
+        facts.extend(parse_national_event(
+            events_by_path.get(e["path"], []), e["league"], today))
+
+    # Player stat leaders. Only for leagues that (a) we configured and (b) are in
+    # season -- gated on a game in the window, which avoids stale offseason stats.
+    tracked_by_path = {}
+    for t in entry["teams"]:
+        if t.get("players") and t["path"] in LEADER_LEAGUES:
+            tracked_by_path.setdefault(t["path"], []).extend(t["players"])
+    for p, cfg in LEADER_LEAGUES.items():
+        if p not in paths or not events_by_path.get(p):
+            continue  # not relevant here, or out of season
+        if offline_leaders is not None:
+            data = offline_leaders.get(p, {})
+        elif offline_events is None:
+            data = fetch_leaders(p, cfg["sort"])
+        else:
+            data = {}
+        res = parse_leaders(data, cfg["stat"], tracked_by_path.get(p, []))
+        ll = res.get("league_leader")
+        if ll:
+            facts.append({"kind": "leader", "scope": "league",
+                          "league": cfg["league"], "stat": cfg["label"],
+                          "unit": cfg["unit"], **ll})
+        for tr in res.get("tracked", []):
+            # Skip the redundant case where the local star IS the league leader.
+            if ll and tr["player"] == ll["player"]:
+                continue
+            facts.append({"kind": "leader", "scope": "local",
+                          "league": cfg["league"], "stat": cfg["label"],
+                          "unit": cfg["unit"], **tr})
+
+    # Enrich team facts with standings: seed, conference, and (preferring the
+    # standings table's record over a possibly-older scoreboard record).
+    for f in facts:
+        if f.get("kind") in ("result", "upcoming", "live"):
+            st = standing_by_team.get(f.get("team"))
+            if st:
+                if st.get("seed") is not None:
+                    f["seed"] = st["seed"]
+                if st.get("conference"):
+                    f["conference"] = st["conference"]
+                if st.get("record"):
+                    f["record"] = st["record"]
 
     # De-dupe identical facts (defensive).
     seen, deduped = set(), []
@@ -455,11 +777,33 @@ SYSTEM_PROMPT = (
     "to Atlanta last night') with one or two handoff questions -- but never "
     "cover the same topic twice to do it.\n"
     "- Use `context` only to enrich a line (e.g. that the Fever are Caitlin "
-    "Clark's team), and only context you were actually given.\n\n"
-    "THE WORLD CUP, IF PRESENT: the real talking point is that it is being "
-    "hosted in the US right now -- a genuinely big deal even for people who "
-    "never watch soccer. Lead with that framing; a US match is the specific "
-    "hook. Never raise a foreign match that has no hook for this reader.\n\n"
+    "Clark's team), and only context you were actually given.\n"
+    "- Some facts include a `record` (a team's season win-loss, e.g. '12-4') and "
+    "may include `seed` (playoff position) and `conference`. These are real "
+    "trends you may state plainly ('the Fever are 12-4, first in the East') or "
+    "build the escape hatch around. State only what's given -- do NOT "
+    "characterize it ('best in the league', 'on a tear') unless that's "
+    "provided.\n"
+    "- A `leader` fact is a real player stat: their rank and number in something "
+    "like scoring. A LOCAL star (scope 'local', e.g. Caitlin Clark) is an "
+    "excellent hook -- 'Caitlin Clark is 4th in the WNBA in scoring at 22.5 a "
+    "game, you watching the Fever?'. Use the exact number and rank given; never "
+    "round differently or invent one.\n\n"
+    "LEAD WITH THE BIGGEST STORY. Not every fact is equal. A `marquee` fact -- a "
+    "national championship or its games (NBA Finals, Super Bowl, World Series, "
+    "Stanley Cup) -- is what the whole country is talking about, so it usually "
+    "deserves the TOP line even though no local team is involved; people in every "
+    "city discuss the Finals. Rank roughly: a title just decided or underway > a "
+    "big event hosted here (World Cup) > a local team's notable result or game > "
+    "a routine local game.\n\n"
+    "BIG EVENTS:\n"
+    "- World Cup: the talking point is that it's being hosted in the US right "
+    "now -- a big deal even for people who never watch soccer. Lead with that "
+    "framing; a US match is the specific hook. Skip foreign matches with no "
+    "hook.\n"
+    "- A `marquee` championship result (a team just won the title) is a strong "
+    "opener: state who won plainly, then hand off ('wild they finally won one -- "
+    "you been following it?').\n\n"
     "VOICE: dry, competent, lightly warm. No exclamation points, no 'actually', "
     "no filler, no scripted-sounding bits. A real person who has just been busy, "
     "not a brochure.\n\n"
@@ -467,9 +811,17 @@ SYSTEM_PROMPT = (
     "- 2 to 4 short lines, each starting with '* ', each on a DIFFERENT topic. "
     "Prefer fewer strong lines over padding -- if there are only two real topics "
     "today, write two. Never repeat a topic to reach a number.\n"
-    "- Then ONE final line starting 'Escape hatch: ' -- a short, graceful way to "
-    "hand the floor back (e.g. \"I haven't kept up this year, what'd I miss?\"). "
-    "One sentence.\n"
+    "- Then ONE final line starting 'Escape hatch: ' -- ONE sentence the reader "
+    "can say to bow out gracefully by handing the floor back. Whenever the facts "
+    "or context give a concrete current angle -- a title just won, an event "
+    "hosted here, a team's clear story this season -- build the hatch around THAT "
+    "as a curious handoff ('crazy the Knicks finally won one -- who impressed "
+    "you?'), not a blank 'what'd I miss'. Fall back to a generic line only when "
+    "there's genuinely nothing specific. Never invent a stat, number, or "
+    "storyline that isn't in the facts.\n"
+    "- VARIETY: a `variety_seed` integer is provided. Use it to vary your "
+    "opening, your sentence shapes, and which fact leads, so someone checking "
+    "daily doesn't get the same template every time. Never mention the seed.\n"
     "- Plain text only. No headers, no markdown bold, no preamble, no sign-off.\n"
     "- If `live_facts` are thin, say so honestly in one line and lean on "
     "context. Do not pad."
@@ -484,6 +836,7 @@ def phrase_with_groq(facts, city_label, date_label, context_lines):
     user_payload = {
         "city": city_label,
         "date": date_label,
+        "variety_seed": sum(ord(c) for c in date_label) % 97,
         "live_facts": facts,
         "context": context_lines,
     }
@@ -575,6 +928,18 @@ def header(city_label, day):
     return title + "\n" + ("-" * len(title))
 
 
+def _trend_suffix(f):
+    """Combine record and standings position into a readable trend string."""
+    bits = []
+    if f.get("record"):
+        bits.append(f["record"])
+    if f.get("seed") is not None:
+        pos = _ordinal(f["seed"])
+        conf = f.get("conference")
+        bits.append("%s in the %s" % (pos, conf) if conf else "%s seed" % pos)
+    return ", ".join(bits)
+
+
 def facts_to_text(facts):
     """Readable dump of raw facts for --no-llm / --raw (no Groq involved)."""
     if not facts:
@@ -586,12 +951,17 @@ def facts_to_text(facts):
             r = "tied" if f.get("tie") else ("won" if f["won"] else "lost")
             vs = "with" if f.get("tie") else "vs"
             s = (" " + f["score"]) if f.get("score") else ""
-            lines.append("* %s %s %s %s%s (%s)" % (
-                f["team"], r, vs, f["opponent"], s, f["when"]))
+            sfx = _trend_suffix(f)
+            sfx = (" -- " + sfx) if sfx else ""
+            lines.append("* %s %s %s %s%s (%s)%s" % (
+                f["team"], r, vs, f["opponent"], s, f["when"], sfx))
         elif k in ("upcoming", "live"):
             vs = "hosts" if f.get("home") else "plays"
             tag = "LIVE now" if k == "live" else "%s %s" % (f["when"], f.get("time", ""))
-            lines.append("* %s %s %s -- %s" % (f["team"], vs, f["opponent"], tag.strip()))
+            sfx = _trend_suffix(f)
+            sfx = (" [%s]" % sfx) if sfx else ""
+            lines.append("* %s%s %s %s -- %s" % (
+                f["team"], sfx, vs, f["opponent"], tag.strip()))
         elif k == "event_result":
             lines.append("* %s: %s (%s)" % (f["event"], f["detail"], f["when"]))
         elif k == "event_upcoming":
@@ -599,6 +969,21 @@ def facts_to_text(facts):
                 f["event"], f["detail"], f["when"], f.get("time", "")))
         elif k == "event_active":
             lines.append("* %s is underway" % f["event"])
+        elif k == "marquee":
+            if f.get("time"):
+                lines.append("* %s: %s -- %s %s" % (
+                    f["round"], f["detail"], f["when"], f["time"]))
+            else:
+                lines.append("* %s: %s (%s)" % (f["round"], f["detail"], f["when"]))
+        elif k == "leader":
+            if f.get("scope") == "league":
+                lines.append("* %s leads the %s in %s at %s %s" % (
+                    f["player"], f["league"], f["stat"], f["value"], f["unit"]))
+            else:
+                tm = (" (%s)" % f["team"]) if f.get("team") else ""
+                lines.append("* %s%s is %s in the %s in %s at %s %s" % (
+                    f["player"], tm, _ordinal(f["rank"]), f["league"],
+                    f["stat"], f["value"], f["unit"]))
     return "\n".join(lines)
 
 # ---------------------------------------------------------------------------
