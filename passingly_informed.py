@@ -69,12 +69,20 @@ _load_dotenv()
 # Config
 # ---------------------------------------------------------------------------
 
+def _env(name, default):
+    """Like os.environ.get, but an empty/whitespace value falls back to default.
+    GitHub Actions expands an unset `${{ vars.X }}` to "" and exports X="", which
+    would otherwise clobber a sensible default. This guards against that."""
+    val = os.environ.get(name)
+    return val.strip() if val and val.strip() else default
+
+
 # Groq model. Groq deprecates models periodically (llama-3.3-70b-versatile was
 # retired June 2026). gpt-oss-20b is fast, cheap, and plenty for phrasing a few
 # facts. gpt-oss-120b is higher quality but noticeably slower. If the API 404s on
 # the model, list current ones with:
 #   curl -H "Authorization: Bearer $GROQ_API_KEY" https://api.groq.com/openai/v1/models
-GROQ_MODEL = os.environ.get("GROQ_MODEL", "openai/gpt-oss-20b")
+GROQ_MODEL = _env("GROQ_MODEL", "openai/gpt-oss-20b")
 GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
 
 ESPN_BASE = "https://site.api.espn.com/apis/site/v2/sports"
