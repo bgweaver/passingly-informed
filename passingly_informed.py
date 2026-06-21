@@ -111,6 +111,10 @@ ARCHIVE_DAYS = 8
 # Tagline shown under the title for first-time visitors.
 SITE_TAGLINE = "The day's sports, translated for people who don't follow sports."
 
+# The little disclaimer shown up near the masthead. Say it however you want.
+SITE_BYLINE = ("Generated once a day by a robot \u2014 on instructions from a guy "
+               "who mostly can't tell if any of it's right.")
+
 # Tip jar. Put your Liberapay/Ko-fi URL here, or set the TIP_URL env var / GitHub
 # repo variable. Left empty, the entire tip line is hidden.
 TIP_URL = os.environ.get("TIP_URL", "")
@@ -1399,6 +1403,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
   .city{font-family:var(--cond); font-weight:700; text-transform:uppercase; letter-spacing:.02em;
     font-size:clamp(2.1rem,9vw,3.1rem); line-height:.9; margin:.18rem 0 0; font-stretch:condensed}
   .clock{font-family:var(--mono); font-size:.72rem; color:var(--green); margin-left:auto; align-self:flex-start; white-space:nowrap}
+  .byline{font-family:var(--mono); font-size:.68rem; line-height:1.5; color:var(--faint);
+    margin:0; padding:0 clamp(16px,4vw,24px) .85rem}
 
   .ticker{display:flex; gap:0; border-top:1px solid var(--line); border-bottom:1px solid var(--line);
     background:#0e1521; overflow:hidden; white-space:nowrap}
@@ -1476,6 +1482,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       </div>
       <div class="clock">{{TODAY_STAMP}}</div>
     </div>
+    <p class="byline">{{BYLINE}}</p>
 
 {{TICKER}}
 
@@ -1618,24 +1625,22 @@ def render_html(today_payload, earlier_payloads=None):
     else:
         form_block = ""
 
-    foot = "Generated once a day by a robot. No tracking, no cookies, no analytics."
-    extra = []
+    foot_parts = []
     if TIP_URL:
         tip = html.escape(TIP_TEXT)  # braces in {link}/{/link} survive escaping
         tip = tip.replace("{link}", '<a href="%s">' % html.escape(TIP_URL))
         tip = tip.replace("{/link}", "</a>")
-        extra.append(tip)
+        foot_parts.append(tip)
     if SOURCE_URL:
-        extra.append('<a href="%s">source</a>' % html.escape(SOURCE_URL))
-    footer = foot
-    if extra:
-        footer += "<br>" + "<br>".join(extra)
+        foot_parts.append('<a href="%s">source</a>' % html.escape(SOURCE_URL))
+    footer = "<br>".join(foot_parts)
 
     out = HTML_TEMPLATE
     for k, v in {
         "{{CITY}}": html.escape(today_payload["city"]),
         "{{TAGLINE}}": html.escape(SITE_TAGLINE),
         "{{TODAY_STAMP}}": html.escape(today_stamp),
+        "{{BYLINE}}": html.escape(SITE_BYLINE),
         "{{TICKER}}": render_ticker(today_payload.get("ticker") or []),
         "{{CARDS}}": "\n".join(cards),
         "{{FORM_BLOCK}}": form_block,
