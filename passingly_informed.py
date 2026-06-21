@@ -1066,9 +1066,13 @@ SYSTEM_PROMPT = (
     "the East'); just don't stack stats like a box score. If a line sounds like "
     "a stat sheet, rewrite it as something a person would say.\n\n"
     "OUTPUT:\n"
-    "- 2 to 4 short lines, each starting with '* ', each on a DIFFERENT topic. "
-    "Prefer fewer strong lines over padding -- if there are only two real topics "
-    "today, write two. Never repeat a topic to reach a number.\n"
+    "- Aim for 3 to 4 short lines when the day has that much real material -- it "
+    "usually does. Each starts with '* ' and covers a DIFFERENT topic. After the "
+    "biggest stories, USE the other real local topics you were given rather than "
+    "leaving them for the ticker: a local team that actually played -- Indy "
+    "Eleven, the Indianapolis Indians, the Indy Fuel, a college team -- is worth "
+    "its own line. Only drop to 2 on a genuinely quiet day with little real "
+    "material. Never pad, invent, or repeat a topic just to reach a number.\n"
     "- Then ONE final line starting 'Escape hatch: '. This is the reader's way "
     "OUT of the conversation -- a line that lets them tap out gracefully without "
     "needing to know anything, by handing it fully to the other person and "
@@ -1343,123 +1347,119 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 <meta name="description" content="{{TAGLINE}}">
 <style>
   :root{
-    --base:#1e1e2e; --mantle:#181825; --crust:#11111b;
-    --surface0:#313244; --surface1:#45475a;
-    --text:#cdd6f4; --subtext1:#bac2de; --subtext0:#a6adc8; --overlay0:#6c7086;
-    --mauve:#cba6f7; --peach:#fab387; --green:#a6e3a1;
+    --bg:#0b0f17; --panel:#141b27; --panel2:#1b2433; --line:#2a3547;
+    --text:#e9eef6; --dim:#8995a8; --faint:#5c6678;
+    --amber:#ffb84d; --green:#3ddc84; --red:#ff5d6c;
+    --cond:"Arial Narrow","Roboto Condensed",Oswald,"Helvetica Neue",Impact,sans-serif;
     --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-    --mono:ui-monospace,"JetBrainsMono Nerd Font","JetBrains Mono","Cascadia Code",Menlo,Consolas,monospace;
+    --mono:ui-monospace,"JetBrains Mono",Menlo,Consolas,monospace;
   }
   *{box-sizing:border-box}
   html,body{margin:0}
-  body{
-    background:var(--base); color:var(--text); font-family:var(--sans);
-    line-height:1.6; padding:clamp(16px,5vw,48px);
-    display:flex; justify-content:center;
-  }
-  main{width:100%; max-width:620px}
-  .card{
-    background:var(--mantle); border:1px solid var(--surface0);
-    border-radius:14px; padding:clamp(20px,5vw,36px);
-    box-shadow:0 18px 50px -20px rgba(0,0,0,.6);
-    animation:rise .5s ease both;
-  }
-  @keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
-  @media (prefers-reduced-motion:reduce){.card{animation:none}}
-  .eyebrow{
-    font-family:var(--mono); font-size:.72rem; letter-spacing:.18em;
-    text-transform:uppercase; color:var(--mauve); margin:0;
-  }
-  h1{font-size:1.05rem; font-weight:600; margin:.55rem 0 .15rem; letter-spacing:.01em}
-  .meta{font-family:var(--mono); font-size:.8rem; color:var(--subtext0); margin:0}
-  .tagline{color:var(--subtext1); font-size:.95rem; margin:.9rem 0 0}
-  hr{border:0; border-top:1px solid var(--surface0); margin:1.4rem 0}
-  ul.digest{list-style:none; margin:0; padding:0; display:grid; gap:1rem}
-  ul.digest li{
-    position:relative; padding-left:1.4rem; color:var(--text); font-size:1.02rem;
-  }
-  ul.digest li::before{
-    content:"›"; position:absolute; left:.1rem; top:-.02rem;
-    color:var(--mauve); font-family:var(--mono); font-weight:700;
-  }
-  .out{
-    margin-top:1.6rem; border:1px dashed var(--surface1); border-radius:10px;
-    padding:.9rem 1rem 1rem; background:var(--crust);
-  }
-  .out .eyebrow{color:var(--peach)}
-  .out p{margin:.4rem 0 0; font-style:italic; color:var(--subtext1)}
-  .signup{margin-top:1.8rem}
-  .signup .row{display:flex; gap:.5rem; margin-top:.5rem; flex-wrap:wrap}
-  .signup input{
-    flex:1 1 200px; min-width:0; background:var(--base); color:var(--text);
-    border:1px solid var(--surface1); border-radius:8px; padding:.6rem .7rem;
-    font-size:.95rem; font-family:var(--sans);
-  }
-  .signup input:focus-visible{outline:2px solid var(--mauve); outline-offset:1px}
-  .signup button{
-    background:var(--mauve); color:var(--crust); border:0; border-radius:8px;
-    padding:.6rem 1rem; font-weight:600; font-size:.95rem; cursor:pointer;
-  }
-  .signup button:hover{filter:brightness(1.07)}
-  .signup button:focus-visible{outline:2px solid var(--text); outline-offset:2px}
-  .fineprint{font-size:.78rem; color:var(--overlay0); margin:.55rem 0 0}
-  .soon{margin-top:1.8rem; color:var(--overlay0)}
-  footer{
-    margin-top:1.4rem; font-family:var(--mono); font-size:.74rem;
-    color:var(--overlay0); text-align:center; line-height:1.9;
-  }
-  footer a{color:var(--subtext0); text-decoration:none; border-bottom:1px solid var(--surface1)}
-  footer a:hover{color:var(--mauve)}
-  footer .sep{opacity:.4; padding:0 .4rem}
-  .masthead{padding:0 clamp(2px,2vw,8px) 1rem}
-  .masthead .eyebrow{margin:0}
-  .masthead h1{margin:.5rem 0 .15rem}
-  .masthead .tagline{margin:.45rem 0 0}
-  .carousel{position:relative}
-  .viewport{overflow:hidden; padding-bottom:20px}
-  .track{display:flex; transition:transform .28s ease}
+  body{background:var(--bg); color:var(--text); font-family:var(--sans); line-height:1.55;
+    padding:clamp(12px,4vw,40px); display:flex; justify-content:center;
+    background-image:radial-gradient(1200px 380px at 50% -8%, #18324a55, transparent);}
+  main{width:100%; max-width:660px}
+
+  .board{background:linear-gradient(180deg,var(--panel),var(--panel2));
+    border:1px solid var(--line); border-radius:6px; box-shadow:0 28px 70px -28px #000; overflow:hidden}
+  .head{display:flex; align-items:center; gap:1rem; padding:clamp(16px,4vw,24px); padding-bottom:.7rem}
+  .mascot{flex:0 0 auto; width:72px; height:72px}
+  .head .titles{min-width:0; flex:1}
+  .kicker{font-family:var(--mono); font-size:.66rem; letter-spacing:.34em; text-transform:uppercase; color:var(--amber); margin:0}
+  .city{font-family:var(--cond); font-weight:700; text-transform:uppercase; letter-spacing:.02em;
+    font-size:clamp(2.1rem,9vw,3.1rem); line-height:.9; margin:.18rem 0 0; font-stretch:condensed}
+  .clock{font-family:var(--mono); font-size:.72rem; color:var(--green); margin-left:auto; align-self:flex-start; white-space:nowrap}
+
+  .ticker{display:flex; gap:0; border-top:1px solid var(--line); border-bottom:1px solid var(--line);
+    background:#0e1521; overflow:hidden; white-space:nowrap}
+  .ticker .run{display:inline-flex; gap:2.4rem; padding:.4rem 0; font-family:var(--mono); font-size:.7rem;
+    color:var(--dim); animation:slide 46s linear infinite}
+  .ticker .run span b{color:var(--amber); font-weight:600}
+  @keyframes slide{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+  @media (prefers-reduced-motion:reduce){.ticker .run{animation:none; padding-left:1rem}}
+
+  .carousel{position:relative; padding:clamp(14px,4vw,22px)}
+  .viewport{overflow:hidden}
+  .track{display:flex; transition:transform .26s ease}
   @media (prefers-reduced-motion:reduce){.track{transition:none}}
-  .day{flex:0 0 100%; width:100%}
-  .badge{
-    font-family:var(--mono); font-size:.64rem; letter-spacing:.12em;
-    text-transform:uppercase; color:var(--crust); background:var(--mauve);
-    padding:.14rem .45rem; border-radius:6px; margin-right:.55rem;
-  }
-  .cbtn{
-    position:absolute; top:50%; transform:translateY(-50%); z-index:2;
-    width:34px; height:34px; border-radius:50%; border:1px solid var(--surface1);
-    background:var(--mantle); color:var(--text); font-size:1.25rem; line-height:1;
-    cursor:pointer; opacity:.85;
-  }
-  .cbtn:hover{opacity:1; color:var(--mauve)}
-  .cbtn:disabled{opacity:.22; cursor:default}
-  .cprev{left:-7px} .cnext{right:-7px}
-  .cdots{display:flex; gap:.5rem; justify-content:center; margin:.6rem 0 .2rem}
-  .cdot{width:8px; height:8px; padding:0; border:0; border-radius:50%; background:var(--surface1); cursor:pointer}
-  .cdot.on{background:var(--mauve)}
-  @media (max-width:559px){.cbtn{display:none}}
+  .card{flex:0 0 100%; width:100%}
+  .cmeta{display:flex; align-items:center; gap:.7rem; font-family:var(--mono); font-size:.74rem; color:var(--dim); margin:0 0 1.1rem}
+  .badge{font-family:var(--cond); font-weight:700; letter-spacing:.12em; text-transform:uppercase;
+    color:#0b0f17; background:var(--amber); padding:.1rem .5rem; border-radius:3px; font-size:.8rem}
+  .rows{display:grid; gap:.7rem}
+  .row{background:#0e1521; border:1px solid var(--line); border-left:3px solid var(--amber);
+    border-radius:4px; padding:.7rem .8rem}
+  .row:nth-child(2n){border-left-color:var(--green)}
+  .row p{margin:0; font-size:1.02rem}
+  .out{margin-top:1.1rem; border:1px dashed var(--faint); border-radius:5px; padding:.7rem .9rem .85rem; background:#0e1521}
+  .out .ol{font-family:var(--mono); font-size:.64rem; letter-spacing:.22em; text-transform:uppercase; color:var(--red)}
+  .out p{margin:.3rem 0 0; font-style:italic; color:var(--dim)}
+
+  .cdots{display:flex; gap:.55rem; justify-content:center; margin:0 0 1.1rem}
+  .cdot{width:9px; height:9px; padding:0; border:0; border-radius:50%; background:#26303f; cursor:pointer}
+  .cdot.on{background:var(--amber); box-shadow:0 0 8px var(--amber)}
+  .cbtn{position:absolute; top:46%; width:36px; height:36px; border-radius:50%; border:1px solid var(--line);
+    background:var(--panel); color:var(--text); cursor:pointer; font-size:1.1rem; z-index:2}
+  .cbtn:hover{color:var(--amber); border-color:var(--amber)} .cbtn:disabled{opacity:.25; cursor:default}
+  .cprev{left:-6px} .cnext{right:-6px}
+  @media (max-width:580px){.cbtn{display:none}}
+
+  .signup{margin:0 clamp(14px,4vw,22px) clamp(16px,4vw,22px)}
+  .signup .eyebrow{font-family:var(--mono); font-size:.66rem; letter-spacing:.18em; text-transform:uppercase; color:var(--amber); margin:0}
+  .signup .row{display:flex; gap:.5rem; margin-top:.5rem; flex-wrap:wrap; background:none; border:0; padding:0}
+  .signup input{flex:1 1 200px; min-width:0; background:#0e1521; color:var(--text);
+    border:1px solid var(--line); border-radius:4px; padding:.6rem .7rem; font-size:.95rem; font-family:var(--sans)}
+  .signup input:focus-visible{outline:2px solid var(--amber); outline-offset:1px}
+  .signup button{background:var(--amber); color:#0b0f17; border:0; border-radius:4px;
+    padding:.6rem 1rem; font-weight:700; font-size:.95rem; cursor:pointer}
+  .signup button:hover{filter:brightness(1.07)}
+  .fineprint{font-size:.78rem; color:var(--faint); margin:.55rem 0 0}
+  .soon{font-family:var(--mono); font-size:.66rem; letter-spacing:.18em; text-transform:uppercase; color:var(--faint)}
+
+  footer{margin:1.3rem 4px 0; color:var(--faint); font-family:var(--mono); font-size:.7rem; text-align:center; line-height:1.9}
+  footer a{color:var(--dim); text-decoration:none; border-bottom:1px solid var(--line)}
+  footer a:hover{color:var(--amber)}
+  footer .sep{opacity:.4; padding:0 .4rem}
 </style>
 </head>
 <body>
 <main>
-  <div class="masthead">
-    <p class="eyebrow">Passingly Informed</p>
-    <h1>{{CITY}}</h1>
-    <p class="tagline">{{TAGLINE}}</p>
-  </div>
-
-  <div class="carousel">
-    <button class="cbtn cprev" id="cprev" type="button" aria-label="Newer day">&lsaquo;</button>
-    <div class="viewport">
-      <div class="track" id="track">
-{{CARDS}}
+  <div class="board">
+    <div class="head">
+      <svg class="mascot" viewBox="0 0 100 100" aria-label="robot mascot with basketball">
+        <line x1="50" y1="14" x2="50" y2="6" stroke="#8995a8" stroke-width="2.4"/>
+        <circle cx="50" cy="5" r="3" fill="#ffb84d"/>
+        <rect x="30" y="14" width="40" height="30" rx="8" fill="#cfd8e6"/>
+        <rect x="35" y="22" width="30" height="14" rx="5" fill="#0e1521"/>
+        <circle cx="44" cy="29" r="3.1" fill="#ffb84d"/><circle cx="56" cy="29" r="3.1" fill="#3ddc84"/>
+        <rect x="33" y="46" width="34" height="30" rx="7" fill="#aeb9cc"/>
+        <rect x="40" y="52" width="20" height="13" rx="3" fill="#0e1521"/>
+        <line x1="46" y1="58" x2="54" y2="58" stroke="#3ddc84" stroke-width="2"/>
+        <rect x="22" y="50" width="9" height="20" rx="4" fill="#8995a8" transform="rotate(18 26 60)"/>
+        <circle cx="76" cy="70" r="15" fill="#ff8a3d"/>
+        <path d="M61 70h30 M76 55v30 M64 60q12 10 24 0 M64 80q12 -10 24 0" stroke="#0b0f17" stroke-width="1.6" fill="none"/>
+        <rect x="66" y="60" width="9" height="9" rx="3" fill="#aeb9cc" transform="rotate(-20 70 64)"/>
+      </svg>
+      <div class="titles">
+        <p class="kicker">Passingly Informed</p>
+        <h1 class="city">{{CITY}}</h1>
       </div>
+      <div class="clock">{{TODAY_STAMP}}</div>
     </div>
-    <button class="cbtn cnext" id="cnext" type="button" aria-label="Older day">&rsaquo;</button>
-  </div>
-  <div class="cdots" id="cdots"></div>
 
+{{TICKER}}
+
+    <div class="carousel">
+      <button class="cbtn cprev" id="cprev" type="button" aria-label="Newer day">&lsaquo;</button>
+      <div class="viewport"><div class="track" id="track">
+{{CARDS}}
+      </div></div>
+      <button class="cbtn cnext" id="cnext" type="button" aria-label="Older day">&rsaquo;</button>
+    </div>
+    <div class="cdots" id="cdots"></div>
 {{FORM_BLOCK}}
+  </div>
   <footer>{{FOOTER}}</footer>
 </main>
 <script>{{CAROUSEL_JS}}</script>
@@ -1468,10 +1468,10 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 """
 
 HATCH_BLOCK = (
-    '    <div class="out">\n'
-    '      <p class="eyebrow">Your out</p>\n'
-    '      <p>{{HATCH}}</p>\n'
-    '    </div>'
+    '        <div class="out">\n'
+    '          <span class="ol">Your out</span>\n'
+    '          <p>{{HATCH}}</p>\n'
+    '        </div>'
 )
 
 FORM_BLOCK = (
@@ -1487,7 +1487,7 @@ FORM_BLOCK = (
     '    </form>'
 )
 
-SOON_BLOCK = '    <p class="soon eyebrow">Email signups coming soon</p>'
+SOON_BLOCK = ('    <p class="signup soon">Email signups coming soon</p>')
 
 
 CAROUSEL_JS = (
@@ -1524,10 +1524,15 @@ def _short_date(iso):
 
 
 def render_day_card(payload, is_today):
-    """One day's digest as a carousel card."""
-    items = "\n".join(
-        "        <li>%s</li>" % html.escape(l) for l in payload.get("lines", [])
-    ) or '        <li>Quiet sports day — nothing worth faking yet.</li>'
+    """One day's digest as a scoreboard-style card: each talking point a row,
+    plus the 'out'."""
+    lines = payload.get("lines", [])
+    if lines:
+        rows = "\n".join(
+            '          <div class="row"><p>%s</p></div>' % html.escape(l)
+            for l in lines)
+    else:
+        rows = '          <div class="row"><p>Quiet sports day — nothing worth faking yet.</p></div>'
 
     hatch_block = ""
     if payload.get("escape_hatch"):
@@ -1539,19 +1544,42 @@ def render_day_card(payload, is_today):
 
     return (
         '      <article class="card day">\n'
-        '        <p class="meta">%s</p>\n'
-        '        <hr>\n'
-        '        <ul class="digest">\n%s\n        </ul>%s\n'
+        '        <p class="cmeta">%s</p>\n'
+        '        <div class="rows">\n%s\n        </div>%s\n'
         '      </article>'
-    ) % (meta, items, hatch_block)
+    ) % (meta, rows, hatch_block)
+
+
+def render_ticker(items):
+    """The scrolling bottom-line, built from real ticker facts. Bolds the tag
+    before the divider ('WNBA · ...'). Returns '' if there's nothing to scroll."""
+    if not items:
+        return ""
+    spans = []
+    for it in items:
+        if " \u00b7 " in it:
+            tag, rest = it.split(" \u00b7 ", 1)
+            spans.append("<span><b>%s</b> &middot; %s</span>" % (
+                html.escape(tag), html.escape(rest)))
+        else:
+            spans.append("<span><b>%s</b></span>" % html.escape(it))
+    run = "".join(spans)
+    # Duplicated so the marquee can loop seamlessly (CSS scrolls one full copy).
+    return '    <div class="ticker"><div class="run">%s%s</div></div>' % (run, run)
 
 
 def render_html(today_payload, earlier_payloads=None):
-    """Build the single page: today's card first, then earlier days as cards the
-    visitor can swipe/flip through. Form + footer belong to the page (today)."""
+    """Build the single scoreboard page: masthead, ticker (real facts), and
+    today's card first, then earlier days as cards to swipe/flip through."""
     earlier_payloads = earlier_payloads or []
     cards = [render_day_card(today_payload, True)]
     cards += [render_day_card(p, False) for p in earlier_payloads]
+
+    try:
+        d = date.fromisoformat(today_payload["date"])
+        today_stamp = (d.strftime("%a %b ") + str(d.day)).upper()
+    except (KeyError, ValueError):
+        today_stamp = ""
 
     if FORM_ENDPOINT:
         form_block = FORM_BLOCK.replace("{{ENDPOINT}}", html.escape(FORM_ENDPOINT))
@@ -1577,6 +1605,8 @@ def render_html(today_payload, earlier_payloads=None):
     for k, v in {
         "{{CITY}}": html.escape(today_payload["city"]),
         "{{TAGLINE}}": html.escape(SITE_TAGLINE),
+        "{{TODAY_STAMP}}": html.escape(today_stamp),
+        "{{TICKER}}": render_ticker(today_payload.get("ticker") or []),
         "{{CARDS}}": "\n".join(cards),
         "{{FORM_BLOCK}}": form_block,
         "{{FOOTER}}": footer,
