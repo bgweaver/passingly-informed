@@ -2,14 +2,14 @@
   "city": "Indianapolis",
   "date": "2026-06-21",
   "date_label": "Sunday, June 21",
-  "generated_at": "2026-06-21T22:03:02+00:00",
+  "generated_at": "2026-06-21T22:25:03+00:00",
   "lines": [
-    "The Fever are 9-7, third in the Eastern Conference after a loss to the Atlanta Dream yesterday. They’ll host the Phoenix Mercury at 8 p.m. tomorrow, with Caitlin Clark averaging about 21 a game.",
-    "The Indianapolis Indians beat the Iowa Cubs 7‑4 yesterday, and the series is on at 2:08 p.m. today.",
-    "The Indy Fuel will play the Wheeling Nailers on Oct 16 at 7:15 p.m. in the ECHL.",
-    "Escape hatch: you follow this way closer than I do."
+    "The FIFA World Cup is in full swing in the U.S. right now, so every soccer fan is tuned in.",
+    "The Indiana Fever are 9-7, third in the Eastern Conference after a loss to the Atlanta Dream yesterday.",
+    "They’ll host the Phoenix Mercury tomorrow at 8 p.m. ET, with Caitlin Clark averaging about 21 a game.",
+    "The Indianapolis Indians beat the Iowa Cubs 7-4 to stay at 30-44 on the road."
   ],
-  "escape_hatch": "",
+  "escape_hatch": "I mostly just catch the highlights, honestly.",
   "ticker": [
     "SUN JUN 21",
     "WNBA · Indiana Fever lost to Atlanta Dream 113-96",
@@ -22,6 +22,6 @@
     "WNBA SCORING · Caitlin Clark 3rd, 21.133333",
     "WNBA SCORING · Aliyah Boston 14th, 17.2"
   ],
-  "display": "* The Fever are 9-7, third in the Eastern Conference after a loss to the Atlanta Dream yesterday. They’ll host the Phoenix Mercury at 8 p.m. tomorrow, with Caitlin Clark averaging about 21 a game.  \n* The Indianapolis Indians beat the Iowa Cubs 7‑4 yesterday, and the series is on at 2:08 p.m. today.  \n* The Indy Fuel will play the Wheeling Nailers on Oct 16 at 7:15 p.m. in the ECHL.  \n* Escape hatch: you follow this way closer than I do.",
-  "speech": "Here's the sports talk for Indianapolis, Sunday, June 21. The Fever are 9-7, third in the Eastern Conference after a loss to the Atlanta Dream yesterday. They’ll host the Phoenix Mercury at 8 p.m. tomorrow, with Caitlin Clark averaging about 21 a game. The Indianapolis Indians beat the Iowa Cubs 7‑4 yesterday, and the series is on at 2:08 p.m. today. The Indy Fuel will play the Wheeling Nailers on Oct 16 at 7:15 p.m. in the ECHL. Escape hatch: you follow this way closer than I do."
+  "display": "* The FIFA World Cup is in full swing in the U.S. right now, so every soccer fan is tuned in.  \n* The Indiana Fever are 9-7, third in the Eastern Conference after a loss to the Atlanta Dream yesterday.  \n* They’ll host the Phoenix Mercury tomorrow at 8 p.m. ET, with Caitlin Clark averaging about 21 a game.  \n* The Indianapolis Indians beat the Iowa Cubs 7-4 to stay at 30-44 on the road.  \n* Escape hatch: I mostly just catch the highlights, honestly.",
+  "speech": "Here's the sports talk for Indianapolis, Sunday, June 21. The FIFA World Cup is in full swing in the U.S. right now, so every soccer fan is tuned in. The Indiana Fever are 9-7, third in the Eastern Conference after a loss to the Atlanta Dream yesterday. They’ll host the Phoenix Mercury tomorrow at 8 p.m. ET, with Caitlin Clark averaging about 21 a game. The Indianapolis Indians beat the Iowa Cubs 7-4 to stay at 30-44 on the road. And if it gets away from you, your out is: I mostly just catch the highlights, honestly."
 }
