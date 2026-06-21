@@ -441,6 +441,9 @@ def parse_milb_team(games, team_id, team_name, league_label, today):
         except Exception:
             continue
         when = relative_day(edt.date(), today)
+        d = (edt.date() - today).days
+        if d > 4 or d < -2:   # ignore games outside the digest window (e.g. an offseason game months out)
+            continue
         st = g.get("status") or {}
         abstract = (st.get("abstractGameState") or "").lower()
         detailed = (st.get("detailedState") or "").lower()
@@ -532,6 +535,9 @@ def parse_echl_team(games, match, team_name, league_label, today):
         except Exception:
             continue
         when = relative_day(edt.date(), today)
+        d = (edt.date() - today).days
+        if d > 4 or d < -2:   # offseason 'next game' can be months out -- not a talking point
+            continue
         status = (g.get("GameStatusStringLong") or g.get("GameStatusString") or "").lower()
         gstatus = str(g.get("GameStatus") or "")
 
@@ -1269,12 +1275,22 @@ def facts_to_text(facts):
     return "\n".join(lines)
 
 
+def _round_stat(v):
+    """'26.3333333' -> '26.3', '26.0' -> '26'. Leaves non-numeric values alone."""
+    try:
+        f = float(v)
+    except (TypeError, ValueError):
+        return str(v)
+    return str(int(round(f))) if abs(f - round(f)) < 0.05 else ("%.1f" % f)
+
+
 def build_ticker(facts, today):
     """Terse, broadcast-style ticker strings built straight from real facts (no
     model, so nothing here can be invented). This is the B-side: the full slate
     of scores, standings, and leaders -- including ones that never made the
     headline talking points (like a non-local league scoring leader)."""
     items, seen = [], set()
+    leader_count = 0
 
     def push(s):
         s = " ".join(s.split()).strip(" -·")
@@ -1307,12 +1323,16 @@ def build_ticker(facts, today):
             push("%s · %s %s" % ((f.get("round") or lg).upper(),
                                  f.get("detail", ""), f.get("when", "")))
         elif k == "leader":
+            if leader_count >= 2:   # a couple of stat leaders is plenty; more is clutter
+                continue
+            leader_count += 1
             stat = (f.get("stat") or "").upper()
+            val = _round_stat(f.get("value", ""))
             if f.get("scope") == "league":
-                push("%s %s · %s %s" % (lg, stat, f.get("player", ""), f.get("value", "")))
+                push("%s %s · %s %s" % (lg, stat, f.get("player", ""), val))
             else:
                 push("%s %s · %s %s, %s" % (lg, stat, f.get("player", ""),
-                                            _ordinal(f.get("rank") or 0), f.get("value", "")))
+                                            _ordinal(f.get("rank") or 0), val))
     return items
 
 
@@ -1545,8 +1565,9 @@ def render_day_card(payload, is_today):
 
     hatch_block = ""
     if payload.get("escape_hatch"):
-        hatch_block = "\n" + HATCH_BLOCK.replace(
-            "{{HATCH}}", html.escape(payload["escape_hatch"]))
+        h = payload["escape_hatch"]
+        h = h[:1].upper() + h[1:]   # the model often writes it lowercase
+        hatch_block = "\n" + HATCH_BLOCK.replace("{{HATCH}}", html.escape(h))
 
     badge = '<span class="badge">Today</span>' if is_today else ""
     meta = badge + html.escape(payload.get("date_label", ""))
