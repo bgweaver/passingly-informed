@@ -2,13 +2,14 @@
   "city": "Indianapolis",
   "date": "2026-06-21",
   "date_label": "Sunday, June 21",
-  "generated_at": "2026-06-21T22:34:20+00:00",
+  "generated_at": "2026-06-21T22:53:27+00:00",
   "lines": [
-    "The Fever fell 113‑96 to the Atlanta Dream yesterday and will host the Phoenix Mercury at 8 p.m. tomorrow.",
-    "The Indianapolis Indians beat the Iowa Cubs 3‑1 today, keeping their 31‑44 record on the road.",
-    "The World Cup is in full swing in the U.S. right now, so there’s a big international game on the radar."
+    "The World Cup is in full swing here in the U.S. and the next match will be a U.S. game.",
+    "The Indiana Fever fell to the Atlanta Dream 113‑96 yesterday and will host the Phoenix Mercury at 8 p.m. tomorrow.",
+    "The Indianapolis Indians beat the Iowa Cubs 3‑1 today, keeping their 31‑44 record.",
+    "Caitlin Clark is averaging about 21 a game for the Fever, one of the league’s top scorers."
   ],
-  "escape_hatch": "sounds like the Fever are the ones to watch—have you been keeping up with them?",
+  "escape_hatch": "I mostly just catch the highlights, honestly.",
   "ticker": [
     "SUN JUN 21",
     "WNBA · Indiana Fever lost to Atlanta Dream 113-96",
@@ -16,11 +17,9 @@
     "FIFA WORLD CUP · underway",
     "TRIPLE-A · Indianapolis Indians beat Iowa Cubs 3-1",
     "TRIPLE-A · Indianapolis Indians vs Scranton/Wilkes-Barre RailRiders Tuesday 7:05 PM ET",
-    "ECHL · Indy Fuel vs Wheeling Nailers Oct 16 7:15 PM ET",
-    "WNBA SCORING · A'ja Wilson 26.133333",
-    "WNBA SCORING · Caitlin Clark 3rd, 21.133333",
-    "WNBA SCORING · Aliyah Boston 14th, 17.2"
+    "WNBA SCORING · A'ja Wilson 26.1",
+    "WNBA SCORING · Caitlin Clark 3rd, 21.1"
   ],
-  "display": "* The Fever fell 113‑96 to the Atlanta Dream yesterday and will host the Phoenix Mercury at 8 p.m. tomorrow.  \n* The Indianapolis Indians beat the Iowa Cubs 3‑1 today, keeping their 31‑44 record on the road.  \n* The World Cup is in full swing in the U.S. right now, so there’s a big international game on the radar.  \n* Escape hatch: sounds like the Fever are the ones to watch—have you been keeping up with them?",
-  "speech": "Here's the sports talk for Indianapolis, Sunday, June 21. The Fever fell 113‑96 to the Atlanta Dream yesterday and will host the Phoenix Mercury at 8 p.m. tomorrow. The Indianapolis Indians beat the Iowa Cubs 3‑1 today, keeping their 31‑44 record on the road. The World Cup is in full swing in the U.S. right now, so there’s a big international game on the radar. And if it gets away from you, your out is: sounds like the Fever are the ones to watch—have you been keeping up with them?"
+  "display": "* The World Cup is in full swing here in the U.S. and the next match will be a U.S. game.  \n* The Indiana Fever fell to the Atlanta Dream 113‑96 yesterday and will host the Phoenix Mercury at 8 p.m. tomorrow.  \n* The Indianapolis Indians beat the Iowa Cubs 3‑1 today, keeping their 31‑44 record.  \n* Caitlin Clark is averaging about 21 a game for the Fever, one of the league’s top scorers.  \n\nEscape hatch: I mostly just catch the highlights, honestly.",
+  "speech": "Here's the sports talk for Indianapolis, Sunday, June 21. The World Cup is in full swing here in the U.S. and the next match will be a U.S. game. The Indiana Fever fell to the Atlanta Dream 113‑96 yesterday and will host the Phoenix Mercury at 8 p.m. tomorrow. The Indianapolis Indians beat the Iowa Cubs 3‑1 today, keeping their 31‑44 record. Caitlin Clark is averaging about 21 a game for the Fever, one of the league’s top scorers. And if it gets away from you, your out is: I mostly just catch the highlights, honestly."
 }
