@@ -2,13 +2,14 @@
   "city": "Indianapolis",
   "date": "2026-06-21",
   "date_label": "Sunday, June 21",
-  "generated_at": "2026-06-21T21:47:05+00:00",
+  "generated_at": "2026-06-21T22:03:02+00:00",
   "lines": [
-    "The World Cup is on in the U.S. right now, and the U.S. team is playing today—quite the buzz for anyone who follows soccer.",
-    "The Fever are 9‑7, third in the East, lost 113‑96 to the Dream yesterday, and are heading back home to face the Mercury tomorrow at 8 p.m. ET, with Caitlin Clark averaging about 21 a game.",
-    "The Indians won 7‑4 over the Cubs yesterday to stay at 30‑44, and they’re on the road again today at 2:08 p.m. ET."
+    "The Fever are 9-7, third in the Eastern Conference after a loss to the Atlanta Dream yesterday. They’ll host the Phoenix Mercury at 8 p.m. tomorrow, with Caitlin Clark averaging about 21 a game.",
+    "The Indianapolis Indians beat the Iowa Cubs 7‑4 yesterday, and the series is on at 2:08 p.m. today.",
+    "The Indy Fuel will play the Wheeling Nailers on Oct 16 at 7:15 p.m. in the ECHL.",
+    "Escape hatch: you follow this way closer than I do."
   ],
-  "escape_hatch": "I mostly just catch the highlights, honestly.",
+  "escape_hatch": "",
   "ticker": [
     "SUN JUN 21",
     "WNBA · Indiana Fever lost to Atlanta Dream 113-96",
@@ -21,6 +22,6 @@
     "WNBA SCORING · Caitlin Clark 3rd, 21.133333",
     "WNBA SCORING · Aliyah Boston 14th, 17.2"
   ],
-  "display": "* The World Cup is on in the U.S. right now, and the U.S. team is playing today—quite the buzz for anyone who follows soccer.  \n* The Fever are 9‑7, third in the East, lost 113‑96 to the Dream yesterday, and are heading back home to face the Mercury tomorrow at 8 p.m. ET, with Caitlin Clark averaging about 21 a game.  \n* The Indians won 7‑4 over the Cubs yesterday to stay at 30‑44, and they’re on the road again today at 2:08 p.m. ET.  \n\nEscape hatch: I mostly just catch the highlights, honestly.",
-  "speech": "Here's the sports talk for Indianapolis, Sunday, June 21. The World Cup is on in the U.S. right now, and the U.S. team is playing today—quite the buzz for anyone who follows soccer. The Fever are 9‑7, third in the East, lost 113‑96 to the Dream yesterday, and are heading back home to face the Mercury tomorrow at 8 p.m. ET, with Caitlin Clark averaging about 21 a game. The Indians won 7‑4 over the Cubs yesterday to stay at 30‑44, and they’re on the road again today at 2:08 p.m. ET. And if it gets away from you, your out is: I mostly just catch the highlights, honestly."
+  "display": "* The Fever are 9-7, third in the Eastern Conference after a loss to the Atlanta Dream yesterday. They’ll host the Phoenix Mercury at 8 p.m. tomorrow, with Caitlin Clark averaging about 21 a game.  \n* The Indianapolis Indians beat the Iowa Cubs 7‑4 yesterday, and the series is on at 2:08 p.m. today.  \n* The Indy Fuel will play the Wheeling Nailers on Oct 16 at 7:15 p.m. in the ECHL.  \n* Escape hatch: you follow this way closer than I do.",
+  "speech": "Here's the sports talk for Indianapolis, Sunday, June 21. The Fever are 9-7, third in the Eastern Conference after a loss to the Atlanta Dream yesterday. They’ll host the Phoenix Mercury at 8 p.m. tomorrow, with Caitlin Clark averaging about 21 a game. The Indianapolis Indians beat the Iowa Cubs 7‑4 yesterday, and the series is on at 2:08 p.m. today. The Indy Fuel will play the Wheeling Nailers on Oct 16 at 7:15 p.m. in the ECHL. Escape hatch: you follow this way closer than I do."
 }
