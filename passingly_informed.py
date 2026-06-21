@@ -28,6 +28,7 @@ nothing to keep patched.
 import argparse
 import json
 import os
+import re
 import sqlite3
 import sys
 import urllib.request
@@ -90,6 +91,13 @@ USER_AGENT = "PassinglyInformed/1.0 (+local tool)"
 HTTP_TIMEOUT = 12
 
 DEFAULT_DB = os.path.expanduser("~/.passingly_informed.sqlite")
+
+# Where past digests are kept so the site can flip back a few days. This is
+# committed to the repo (the only thing that persists between Action runs); the
+# build copies the recent ones into the published site. ARCHIVE_DAYS includes
+# today, so 8 == today plus a week back.
+ARCHIVE_DIR = "data/digests"
+ARCHIVE_DAYS = 8
 
 # ---- Site build settings (edit these) -------------------------------------
 # Tagline shown under the title for first-time visitors.
@@ -1110,24 +1118,58 @@ HTML_TEMPLATE = """<!DOCTYPE html>
   footer a{color:var(--subtext0); text-decoration:none; border-bottom:1px solid var(--surface1)}
   footer a:hover{color:var(--mauve)}
   footer .sep{opacity:.4; padding:0 .4rem}
+  .masthead{padding:0 clamp(2px,2vw,8px) 1rem}
+  .masthead .eyebrow{margin:0}
+  .masthead h1{margin:.5rem 0 .15rem}
+  .masthead .tagline{margin:.45rem 0 0}
+  .carousel{position:relative}
+  .viewport{overflow:hidden; padding-bottom:20px}
+  .track{display:flex; transition:transform .28s ease}
+  @media (prefers-reduced-motion:reduce){.track{transition:none}}
+  .day{flex:0 0 100%; width:100%}
+  .badge{
+    font-family:var(--mono); font-size:.64rem; letter-spacing:.12em;
+    text-transform:uppercase; color:var(--crust); background:var(--mauve);
+    padding:.14rem .45rem; border-radius:6px; margin-right:.55rem;
+  }
+  .cbtn{
+    position:absolute; top:50%; transform:translateY(-50%); z-index:2;
+    width:34px; height:34px; border-radius:50%; border:1px solid var(--surface1);
+    background:var(--mantle); color:var(--text); font-size:1.25rem; line-height:1;
+    cursor:pointer; opacity:.85;
+  }
+  .cbtn:hover{opacity:1; color:var(--mauve)}
+  .cbtn:disabled{opacity:.22; cursor:default}
+  .cprev{left:-7px} .cnext{right:-7px}
+  .cdots{display:flex; gap:.5rem; justify-content:center; margin:.6rem 0 .2rem}
+  .cdot{width:8px; height:8px; padding:0; border:0; border-radius:50%; background:var(--surface1); cursor:pointer}
+  .cdot.on{background:var(--mauve)}
+  @media (max-width:559px){.cbtn{display:none}}
 </style>
 </head>
 <body>
 <main>
-  <div class="card">
+  <div class="masthead">
     <p class="eyebrow">Passingly Informed</p>
     <h1>{{CITY}}</h1>
-    <p class="meta">{{DATE_LABEL}}</p>
     <p class="tagline">{{TAGLINE}}</p>
-    <hr>
-    <ul class="digest">
-{{ITEMS}}
-    </ul>
-{{HATCH_BLOCK}}
-{{FORM_BLOCK}}
   </div>
+
+  <div class="carousel">
+    <button class="cbtn cprev" id="cprev" type="button" aria-label="Newer day">&lsaquo;</button>
+    <div class="viewport">
+      <div class="track" id="track">
+{{CARDS}}
+      </div>
+    </div>
+    <button class="cbtn cnext" id="cnext" type="button" aria-label="Older day">&rsaquo;</button>
+  </div>
+  <div class="cdots" id="cdots"></div>
+
+{{FORM_BLOCK}}
   <footer>{{FOOTER}}</footer>
 </main>
+<script>{{CAROUSEL_JS}}</script>
 </body>
 </html>
 """
@@ -1155,14 +1197,68 @@ FORM_BLOCK = (
 SOON_BLOCK = '    <p class="soon eyebrow">Email signups coming soon</p>'
 
 
-def render_html(payload):
+CAROUSEL_JS = (
+    "(function(){"
+    "var track=document.getElementById('track');if(!track)return;"
+    "var n=track.children.length,i=0;"
+    "var dots=document.getElementById('cdots');"
+    "var prev=document.getElementById('cprev'),next=document.getElementById('cnext');"
+    "function render(){"
+    "track.style.transform='translateX(-'+(i*100)+'%)';"
+    "if(dots){var d=dots.children;for(var k=0;k<d.length;k++)d[k].className='cdot'+(k===i?' on':'');}"
+    "if(prev)prev.disabled=(i<=0);if(next)next.disabled=(i>=n-1);}"
+    "function go(x){i=x<0?0:(x>n-1?n-1:x);render();}"
+    "if(n<2){if(prev)prev.style.display='none';if(next)next.style.display='none';"
+    "if(dots)dots.style.display='none';return;}"
+    "for(var k=0;k<n;k++){(function(idx){var b=document.createElement('button');"
+    "b.className='cdot';b.type='button';b.setAttribute('aria-label','Day '+(idx+1));"
+    "b.onclick=function(){go(idx);};dots.appendChild(b);})(k);}"
+    "if(prev)prev.onclick=function(){go(i-1);};"
+    "if(next)next.onclick=function(){go(i+1);};"
+    "var x0=null;"
+    "track.addEventListener('touchstart',function(e){x0=e.touches[0].clientX;},{passive:true});"
+    "track.addEventListener('touchend',function(e){if(x0==null)return;"
+    "var dx=e.changedTouches[0].clientX-x0;if(Math.abs(dx)>40)go(dx<0?i+1:i-1);x0=null;},{passive:true});"
+    "document.addEventListener('keydown',function(e){"
+    "if(e.key==='ArrowLeft')go(i-1);else if(e.key==='ArrowRight')go(i+1);});"
+    "render();})();"
+)
+
+
+def _short_date(iso):
+    d = date.fromisoformat(iso)
+    return d.strftime("%b ") + str(d.day)
+
+
+def render_day_card(payload, is_today):
+    """One day's digest as a carousel card."""
     items = "\n".join(
-        "      <li>%s</li>" % html.escape(l) for l in payload["lines"]
-    ) or '      <li>Quiet sports day — nothing worth faking yet.</li>'
+        "        <li>%s</li>" % html.escape(l) for l in payload.get("lines", [])
+    ) or '        <li>Quiet sports day — nothing worth faking yet.</li>'
 
     hatch_block = ""
     if payload.get("escape_hatch"):
-        hatch_block = HATCH_BLOCK.replace("{{HATCH}}", html.escape(payload["escape_hatch"]))
+        hatch_block = "\n" + HATCH_BLOCK.replace(
+            "{{HATCH}}", html.escape(payload["escape_hatch"]))
+
+    badge = '<span class="badge">Today</span>' if is_today else ""
+    meta = badge + html.escape(payload.get("date_label", ""))
+
+    return (
+        '      <article class="card day">\n'
+        '        <p class="meta">%s</p>\n'
+        '        <hr>\n'
+        '        <ul class="digest">\n%s\n        </ul>%s\n'
+        '      </article>'
+    ) % (meta, items, hatch_block)
+
+
+def render_html(today_payload, earlier_payloads=None):
+    """Build the single page: today's card first, then earlier days as cards the
+    visitor can swipe/flip through. Form + footer belong to the page (today)."""
+    earlier_payloads = earlier_payloads or []
+    cards = [render_day_card(today_payload, True)]
+    cards += [render_day_card(p, False) for p in earlier_payloads]
 
     if FORM_ENDPOINT:
         form_block = FORM_BLOCK.replace("{{ENDPOINT}}", html.escape(FORM_ENDPOINT))
@@ -1186,23 +1282,47 @@ def render_html(payload):
 
     out = HTML_TEMPLATE
     for k, v in {
-        "{{CITY}}": html.escape(payload["city"]),
-        "{{DATE_LABEL}}": html.escape(payload["date_label"]),
+        "{{CITY}}": html.escape(today_payload["city"]),
         "{{TAGLINE}}": html.escape(SITE_TAGLINE),
-        "{{ITEMS}}": items,
-        "{{HATCH_BLOCK}}": hatch_block,
+        "{{CARDS}}": "\n".join(cards),
         "{{FORM_BLOCK}}": form_block,
         "{{FOOTER}}": footer,
+        "{{CAROUSEL_JS}}": CAROUSEL_JS,
     }.items():
         out = out.replace(k, v)
     return out
 
 
-def build_site(out_dir, city_key, today, db_path=DEFAULT_DB, refresh=False):
-    """Write digest.json + index.html into out_dir. Reuses today's cached digest
-    if one exists (so re-running --build, or building after a normal run, costs no
-    tokens); generates fresh on a cache miss or with refresh=True. The once-a-day
-    cron lands on a miss each morning, which is the one real generation per day."""
+def _load_archive(archive_dir, today):
+    """Write today's payload (caller does that first), then load up to
+    ARCHIVE_DAYS most recent stored payloads, newest first."""
+    import glob
+    files = sorted(glob.glob(os.path.join(archive_dir, "*.json")))  # ISO sorts by date
+    # Keep only valid YYYY-MM-DD.json names.
+    keep = [f for f in files if re.match(r"\d{4}-\d{2}-\d{2}\.json$", os.path.basename(f))]
+    # Prune older than ARCHIVE_DAYS so the repo doesn't grow forever.
+    for old in keep[:-ARCHIVE_DAYS]:
+        try:
+            os.remove(old)
+        except OSError:
+            pass
+    recent = keep[-ARCHIVE_DAYS:]
+    payloads = []
+    for f in reversed(recent):  # newest first
+        try:
+            with open(f, encoding="utf-8") as fh:
+                payloads.append(json.load(fh))
+        except (OSError, ValueError):
+            pass
+    return payloads
+
+
+def build_site(out_dir, city_key, today, db_path=DEFAULT_DB, refresh=False,
+               archive_dir=ARCHIVE_DIR):
+    """Write digest.json + a single index.html into out_dir. index.html holds
+    today's digest plus the last few days as cards the visitor can flip through.
+    Reuses today's cached digest if one exists (so re-running costs no tokens);
+    generates fresh on a cache miss or refresh=True."""
     if city_key not in REGISTRY:
         raise SystemExit("Unknown city '%s'" % city_key)
     entry = REGISTRY[city_key]
@@ -1234,11 +1354,22 @@ def build_site(out_dir, city_key, today, db_path=DEFAULT_DB, refresh=False):
         "speech": to_speech(lines, hatch, entry["label"], date_label),
     }
 
+    # Persist today into the archive (overwrites if regenerated), then load recent.
+    os.makedirs(archive_dir, exist_ok=True)
+    with open(os.path.join(archive_dir, "%s.json" % today.isoformat()),
+              "w", encoding="utf-8") as f:
+        json.dump(payload, f, indent=2, ensure_ascii=False)
+    recent = _load_archive(archive_dir, today)
+
     os.makedirs(out_dir, exist_ok=True)
+    # digest.json is always TODAY (this is what Home Assistant reads).
     with open(os.path.join(out_dir, "digest.json"), "w", encoding="utf-8") as f:
         json.dump(payload, f, indent=2, ensure_ascii=False)
+
+    # One page: today's card first, then earlier days as flip-through cards.
+    earlier = [p for p in recent if p.get("date") != today.isoformat()]
     with open(os.path.join(out_dir, "index.html"), "w", encoding="utf-8") as f:
-        f.write(render_html(payload))
+        f.write(render_html(payload, earlier_payloads=earlier))
     return payload
 
 
@@ -1333,6 +1464,8 @@ def main():
     ap.add_argument("--build", metavar="DIR",
                     help="generate digest.json + index.html into DIR (for the "
                          "GitHub Action), then exit")
+    ap.add_argument("--archive-dir", default=ARCHIVE_DIR,
+                    help="where past digests are stored for the flip-back archive")
     ap.add_argument("--selftest", action="store_true")
     args = ap.parse_args()
 
@@ -1348,7 +1481,8 @@ def main():
         if args.date:
             today = date.fromisoformat(args.date)
         payload = build_site(args.build, args.city.lower(), today,
-                              db_path=args.db, refresh=args.refresh)
+                             db_path=args.db, refresh=args.refresh,
+                             archive_dir=args.archive_dir)
         print("Wrote %s/digest.json and %s/index.html (%d lines)" % (
             args.build, args.build, len(payload["lines"])))
         return

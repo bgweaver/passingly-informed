@@ -18,9 +18,9 @@ on:
     - cron: "0 9 * * *"
   workflow_dispatch: {}   # lets you trigger a run by hand from the Actions tab
 
-# Least privilege: only what Pages deployment needs.
+# Least privilege: pages deploy + committing the day's archive file back.
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 
@@ -49,6 +49,18 @@ jobs:
           FORM_ENDPOINT: ${{ secrets.FORM_ENDPOINT }}
           GROQ_MODEL: ${{ vars.GROQ_MODEL }}
         run: python3 passingly_informed.py --build ./site
+
+      # Persist today's digest into the repo so the site can flip back a few days.
+      # data/digests is the only thing that survives between runs; ./site is
+      # rebuilt from it each morning. Non-fatal: a push hiccup never blocks the
+      # deploy, it just means that one day isn't archived.
+      - name: Persist archive
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/digests
+          git commit -m "archive: $(date -u +%F)" || { echo "nothing to commit"; exit 0; }
+          git push || echo "push failed -- archive not persisted this run"
 
       # The daily rebuild republishes ./site wholesale. GitHub's custom-domain
       # marker is a CNAME file inside the published folder; if it's missing, a
