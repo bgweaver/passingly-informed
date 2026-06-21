@@ -2,14 +2,13 @@
   "city": "Indianapolis",
   "date": "2026-06-21",
   "date_label": "Sunday, June 21",
-  "generated_at": "2026-06-21T22:25:03+00:00",
+  "generated_at": "2026-06-21T22:28:54+00:00",
   "lines": [
-    "The FIFA World Cup is in full swing in the U.S. right now, so every soccer fan is tuned in.",
-    "The Indiana Fever are 9-7, third in the Eastern Conference after a loss to the Atlanta Dream yesterday.",
-    "They’ll host the Phoenix Mercury tomorrow at 8 p.m. ET, with Caitlin Clark averaging about 21 a game.",
-    "The Indianapolis Indians beat the Iowa Cubs 7-4 to stay at 30-44 on the road."
+    "The FIFA World Cup is underway here in the U.S., with the national team playing a match today.",
+    "The Indiana Fever dropped 113-96 to the Atlanta Dream yesterday, moving to 9-7 and sitting third in the Eastern Conference; they’ll host the Phoenix Mercury at 8 PM tomorrow.",
+    "The Indianapolis Indians beat the Iowa Cubs 7-4 yesterday, keeping their record at 30-44."
   ],
-  "escape_hatch": "I mostly just catch the highlights, honestly.",
+  "escape_hatch": "you follow this way closer than I do.",
   "ticker": [
     "SUN JUN 21",
     "WNBA · Indiana Fever lost to Atlanta Dream 113-96",
@@ -22,6 +21,6 @@
     "WNBA SCORING · Caitlin Clark 3rd, 21.133333",
     "WNBA SCORING · Aliyah Boston 14th, 17.2"
   ],
-  "display": "* The FIFA World Cup is in full swing in the U.S. right now, so every soccer fan is tuned in.  \n* The Indiana Fever are 9-7, third in the Eastern Conference after a loss to the Atlanta Dream yesterday.  \n* They’ll host the Phoenix Mercury tomorrow at 8 p.m. ET, with Caitlin Clark averaging about 21 a game.  \n* The Indianapolis Indians beat the Iowa Cubs 7-4 to stay at 30-44 on the road.  \n* Escape hatch: I mostly just catch the highlights, honestly.",
-  "speech": "Here's the sports talk for Indianapolis, Sunday, June 21. The FIFA World Cup is in full swing in the U.S. right now, so every soccer fan is tuned in. The Indiana Fever are 9-7, third in the Eastern Conference after a loss to the Atlanta Dream yesterday. They’ll host the Phoenix Mercury tomorrow at 8 p.m. ET, with Caitlin Clark averaging about 21 a game. The Indianapolis Indians beat the Iowa Cubs 7-4 to stay at 30-44 on the road. And if it gets away from you, your out is: I mostly just catch the highlights, honestly."
+  "display": "* The FIFA World Cup is underway here in the U.S., with the national team playing a match today.  \n* The Indiana Fever dropped 113-96 to the Atlanta Dream yesterday, moving to 9-7 and sitting third in the Eastern Conference; they’ll host the Phoenix Mercury at 8 PM tomorrow.  \n* The Indianapolis Indians beat the Iowa Cubs 7-4 yesterday, keeping their record at 30-44.  \n* Escape hatch: you follow this way closer than I do.",
+  "speech": "Here's the sports talk for Indianapolis, Sunday, June 21. The FIFA World Cup is underway here in the U.S., with the national team playing a match today. The Indiana Fever dropped 113-96 to the Atlanta Dream yesterday, moving to 9-7 and sitting third in the Eastern Conference; they’ll host the Phoenix Mercury at 8 PM tomorrow. The Indianapolis Indians beat the Iowa Cubs 7-4 yesterday, keeping their record at 30-44. And if it gets away from you, your out is: you follow this way closer than I do."
 }
