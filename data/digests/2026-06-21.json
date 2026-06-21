@@ -2,12 +2,12 @@
   "city": "Indianapolis",
   "date": "2026-06-21",
   "date_label": "Sunday, June 21",
-  "generated_at": "2026-06-21T22:53:27+00:00",
+  "generated_at": "2026-06-21T23:15:15+00:00",
   "lines": [
-    "The World Cup is in full swing here in the U.S. and the next match will be a U.S. game.",
-    "The Indiana Fever fell to the Atlanta Dream 113‑96 yesterday and will host the Phoenix Mercury at 8 p.m. tomorrow.",
-    "The Indianapolis Indians beat the Iowa Cubs 3‑1 today, keeping their 31‑44 record.",
-    "Caitlin Clark is averaging about 21 a game for the Fever, one of the league’s top scorers."
+    "The World Cup is in full swing here in the U.S., with matches happening every day.",
+    "The Fever fell to the Dream 113‑96 yesterday but will host the Mercury at 8 p.m. tomorrow.",
+    "The Indians beat the Cubs 3‑1 today and will face the RailRiders on Tuesday night.",
+    "Caitlin Clark averages about 21 a game for the Fever, one of the league’s top scorers."
   ],
   "escape_hatch": "I mostly just catch the highlights, honestly.",
   "ticker": [
@@ -20,6 +20,6 @@
     "WNBA SCORING · A'ja Wilson 26.1",
     "WNBA SCORING · Caitlin Clark 3rd, 21.1"
   ],
-  "display": "* The World Cup is in full swing here in the U.S. and the next match will be a U.S. game.  \n* The Indiana Fever fell to the Atlanta Dream 113‑96 yesterday and will host the Phoenix Mercury at 8 p.m. tomorrow.  \n* The Indianapolis Indians beat the Iowa Cubs 3‑1 today, keeping their 31‑44 record.  \n* Caitlin Clark is averaging about 21 a game for the Fever, one of the league’s top scorers.  \n\nEscape hatch: I mostly just catch the highlights, honestly.",
-  "speech": "Here's the sports talk for Indianapolis, Sunday, June 21. The World Cup is in full swing here in the U.S. and the next match will be a U.S. game. The Indiana Fever fell to the Atlanta Dream 113‑96 yesterday and will host the Phoenix Mercury at 8 p.m. tomorrow. The Indianapolis Indians beat the Iowa Cubs 3‑1 today, keeping their 31‑44 record. Caitlin Clark is averaging about 21 a game for the Fever, one of the league’s top scorers. And if it gets away from you, your out is: I mostly just catch the highlights, honestly."
+  "display": "* The World Cup is in full swing here in the U.S., with matches happening every day.  \n* The Fever fell to the Dream 113‑96 yesterday but will host the Mercury at 8 p.m. tomorrow.  \n* The Indians beat the Cubs 3‑1 today and will face the RailRiders on Tuesday night.  \n* Caitlin Clark averages about 21 a game for the Fever, one of the league’s top scorers.  \n\nEscape hatch: I mostly just catch the highlights, honestly.",
+  "speech": "Here's the sports talk for Indianapolis, Sunday, June 21. The World Cup is in full swing here in the U.S., with matches happening every day. The Fever fell to the Dream 113‑96 yesterday but will host the Mercury at 8 p.m. tomorrow. The Indians beat the Cubs 3‑1 today and will face the RailRiders on Tuesday night. Caitlin Clark averages about 21 a game for the Fever, one of the league’s top scorers. And if it gets away from you, your out is: I mostly just catch the highlights, honestly."
 }
