@@ -2,25 +2,25 @@
   "city": "Indianapolis",
   "date": "2026-06-21",
   "date_label": "Sunday, June 21",
-  "generated_at": "2026-06-21T22:28:54+00:00",
+  "generated_at": "2026-06-21T22:34:20+00:00",
   "lines": [
-    "The FIFA World Cup is underway here in the U.S., with the national team playing a match today.",
-    "The Indiana Fever dropped 113-96 to the Atlanta Dream yesterday, moving to 9-7 and sitting third in the Eastern Conference; they’ll host the Phoenix Mercury at 8 PM tomorrow.",
-    "The Indianapolis Indians beat the Iowa Cubs 7-4 yesterday, keeping their record at 30-44."
+    "The Fever fell 113‑96 to the Atlanta Dream yesterday and will host the Phoenix Mercury at 8 p.m. tomorrow.",
+    "The Indianapolis Indians beat the Iowa Cubs 3‑1 today, keeping their 31‑44 record on the road.",
+    "The World Cup is in full swing in the U.S. right now, so there’s a big international game on the radar."
   ],
-  "escape_hatch": "you follow this way closer than I do.",
+  "escape_hatch": "sounds like the Fever are the ones to watch—have you been keeping up with them?",
   "ticker": [
     "SUN JUN 21",
     "WNBA · Indiana Fever lost to Atlanta Dream 113-96",
     "WNBA · Indiana Fever vs Phoenix Mercury tomorrow 8:00 PM ET",
     "FIFA WORLD CUP · underway",
-    "TRIPLE-A · Indianapolis Indians beat Iowa Cubs 7-4",
-    "LIVE · Indianapolis Indians at Iowa Cubs today 2:08 PM ET",
+    "TRIPLE-A · Indianapolis Indians beat Iowa Cubs 3-1",
+    "TRIPLE-A · Indianapolis Indians vs Scranton/Wilkes-Barre RailRiders Tuesday 7:05 PM ET",
     "ECHL · Indy Fuel vs Wheeling Nailers Oct 16 7:15 PM ET",
     "WNBA SCORING · A'ja Wilson 26.133333",
     "WNBA SCORING · Caitlin Clark 3rd, 21.133333",
     "WNBA SCORING · Aliyah Boston 14th, 17.2"
   ],
-  "display": "* The FIFA World Cup is underway here in the U.S., with the national team playing a match today.  \n* The Indiana Fever dropped 113-96 to the Atlanta Dream yesterday, moving to 9-7 and sitting third in the Eastern Conference; they’ll host the Phoenix Mercury at 8 PM tomorrow.  \n* The Indianapolis Indians beat the Iowa Cubs 7-4 yesterday, keeping their record at 30-44.  \n* Escape hatch: you follow this way closer than I do.",
-  "speech": "Here's the sports talk for Indianapolis, Sunday, June 21. The FIFA World Cup is underway here in the U.S., with the national team playing a match today. The Indiana Fever dropped 113-96 to the Atlanta Dream yesterday, moving to 9-7 and sitting third in the Eastern Conference; they’ll host the Phoenix Mercury at 8 PM tomorrow. The Indianapolis Indians beat the Iowa Cubs 7-4 yesterday, keeping their record at 30-44. And if it gets away from you, your out is: you follow this way closer than I do."
+  "display": "* The Fever fell 113‑96 to the Atlanta Dream yesterday and will host the Phoenix Mercury at 8 p.m. tomorrow.  \n* The Indianapolis Indians beat the Iowa Cubs 3‑1 today, keeping their 31‑44 record on the road.  \n* The World Cup is in full swing in the U.S. right now, so there’s a big international game on the radar.  \n* Escape hatch: sounds like the Fever are the ones to watch—have you been keeping up with them?",
+  "speech": "Here's the sports talk for Indianapolis, Sunday, June 21. The Fever fell 113‑96 to the Atlanta Dream yesterday and will host the Phoenix Mercury at 8 p.m. tomorrow. The Indianapolis Indians beat the Iowa Cubs 3‑1 today, keeping their 31‑44 record on the road. The World Cup is in full swing in the U.S. right now, so there’s a big international game on the radar. And if it gets away from you, your out is: sounds like the Fever are the ones to watch—have you been keeping up with them?"
 }
