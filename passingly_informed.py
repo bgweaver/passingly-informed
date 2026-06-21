@@ -87,6 +87,14 @@ GROQ_MODEL = _env("GROQ_MODEL", "openai/gpt-oss-20b")
 GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
 
 ESPN_BASE = "https://site.api.espn.com/apis/site/v2/sports"
+# MLB's own free stats API -- the one feed that covers the minors (Triple-A,
+# sportId 11), which ESPN doesn't. Used only for teams flagged source="milb".
+STATSAPI_BASE = "https://statsapi.mlb.com/api/v1"
+# HockeyTech / LeagueStat powers the ECHL (and most minor hockey). The scorebar
+# feed needs the league's public client key (shipped in their own web app).
+# Used only for teams flagged source="echl".
+HOCKEYTECH_FEED = "https://lscluster.hockeytech.com/feed/index.php"
+ECHL_KEY = os.environ.get("ECHL_KEY", "2c2b89ea7345cae8")
 USER_AGENT = "PassinglyInformed/1.0 (+local tool)"
 HTTP_TIMEOUT = 12
 
@@ -138,6 +146,25 @@ REGISTRY = {
             {"path": "football/nfl", "league": "NFL", "name": "Indianapolis Colts"},
             {"path": "soccer/usa.usl.1", "league": "USL Championship",
              "name": "Indy Eleven"},
+
+            # Indianapolis Indians (Triple-A baseball) via statsapi, not ESPN.
+            # team_id below is from statsapi's Triple-A team list -- VERIFY it:
+            #   curl -s "https://statsapi.mlb.com/api/v1/teams?sportId=11" \
+            #     | python3 -c "import sys,json;[print(t['id'],t['name']) for t \
+            #       in json.load(sys.stdin)['teams'] if 'Indianapolis' in t['name']]"
+            {"source": "milb", "team_id": 484, "league": "Triple-A",
+             "name": "Indianapolis Indians"},
+
+            # Indy Fuel (ECHL hockey) via HockeyTech's scorebar feed. `match` is
+            # how they appear in that feed (city "Indy"); season is Oct-mid-June.
+            {"source": "echl", "match": "Indy", "league": "ECHL",
+             "name": "Indy Fuel"},
+
+            # Out-of-market: some Indiana fans follow the Blackhawks, but hockey is
+            # a smaller deal here, so they ride the ticker and only headline when
+            # something notable is happening (a playoff run, a big result).
+            {"path": "hockey/nhl", "league": "NHL", "name": "Chicago Blackhawks",
+             "out_of_market": True},
 
             # Indiana / Hoosiers — basketball blue blood; football in the Big Ten.
             {"path": "football/college-football", "league": "College Football",
@@ -193,6 +220,8 @@ REGISTRY = {
             "Notre Dame football has a national following well beyond Indiana.",
             "Indianapolis regularly hosts marquee events like the NCAA Final Four "
             "and the NFL Scouting Combine.",
+            "Indiana has no NHL team; some local fans follow the Chicago "
+            "Blackhawks, though hockey is a smaller deal in the state.",
         ],
         # Adding another city is pure data entry: copy this block, swap the label,
         # set each team's `name` to ESPN's exact displayName, and verify in season
@@ -369,6 +398,169 @@ def parse_team_games(events, team_name, league_label, today):
         out.append(max(results, key=lambda x: x[0])[1])   # most recent result
     if upcoming:
         out.append(min(upcoming, key=lambda x: x[0])[1])   # soonest upcoming
+    return out
+
+
+def fetch_milb_schedule(team_id, start, end):
+    """One Triple-A team's schedule from statsapi over [start, end] (date objs).
+    Returns the flat list of game dicts, or [] on any failure -- never invents.
+    This is the only non-ESPN feed; it's the one that covers the minors."""
+    url = "%s/schedule?sportId=11&teamId=%s&startDate=%s&endDate=%s" % (
+        STATSAPI_BASE, team_id, start.isoformat(), end.isoformat())
+    try:
+        data = http_get_json(url)
+    except (urllib.error.URLError, urllib.error.HTTPError, ValueError, TimeoutError) as e:
+        sys.stderr.write("  ! milb fetch failed %s: %s\n" % (team_id, e))
+        return []
+    games = []
+    for d in (data.get("dates") or []):
+        games.extend(d.get("games") or [])
+    return games
+
+
+def parse_milb_team(games, team_id, team_name, league_label, today):
+    """Turn statsapi games into the SAME fact shape as parse_team_games: the
+    most-recent result and soonest upcoming for our team. leagueRecord gives us a
+    free W-L record, same as ESPN's."""
+    tid = str(team_id)
+    results, upcoming = [], []
+    for g in games:
+        teams = g.get("teams") or {}
+        home, away = teams.get("home") or {}, teams.get("away") or {}
+        hid = str((home.get("team") or {}).get("id"))
+        aid = str((away.get("team") or {}).get("id"))
+        if tid == hid:
+            us, them, is_home = home, away, True
+        elif tid == aid:
+            us, them, is_home = away, home, False
+        else:
+            continue
+        opp = (them.get("team") or {}).get("name") or "?"
+        try:
+            edt = _parse_iso_to_eastern(g.get("gameDate", ""))
+        except Exception:
+            continue
+        when = relative_day(edt.date(), today)
+        st = g.get("status") or {}
+        abstract = (st.get("abstractGameState") or "").lower()
+        detailed = (st.get("detailedState") or "").lower()
+        rec = us.get("leagueRecord") or {}
+        record = ("%s-%s" % (rec["wins"], rec["losses"])
+                  if rec.get("wins") is not None and rec.get("losses") is not None else None)
+
+        if abstract == "final" or "final" in detailed or "completed" in detailed:
+            us_s, them_s = us.get("score"), them.get("score")
+            score = None
+            if isinstance(us_s, int) and isinstance(them_s, int):
+                hi, lo = (us_s, them_s) if us_s >= them_s else (them_s, us_s)
+                score = "%d-%d" % (hi, lo)
+            results.append((edt, {
+                "kind": "result", "league": league_label, "team": team_name,
+                "won": bool(us.get("isWinner")), "tie": bool(g.get("isTie")),
+                "opponent": opp, "score": score, "record": record, "when": when,
+            }))
+        elif abstract in ("preview", "live") or "progress" in detailed or detailed in (
+                "scheduled", "pre-game", "warmup", "delayed start"):
+            live = abstract == "live" or "progress" in detailed
+            if when in ("today", "tonight") and edt.hour >= 17:
+                when = "tonight"
+            upcoming.append((edt, {
+                "kind": "live" if live else "upcoming", "league": league_label,
+                "team": team_name, "opponent": opp, "home": is_home,
+                "record": record, "when": when, "time": fmt_time(edt),
+            }))
+
+    out = []
+    if results:
+        out.append(max(results, key=lambda x: x[0])[1])
+    if upcoming:
+        out.append(min(upcoming, key=lambda x: x[0])[1])
+    return out
+
+
+def fetch_echl_scorebar(days_back=3, days_ahead=4):
+    """ECHL games over a short window from HockeyTech's league-wide scorebar feed
+    (one request covers every team). Returns the games list, or [] on any
+    failure -- never invents. Empty in the offseason is normal and fine."""
+    url = ("%s?feed=modulekit&view=scorebar&client_code=echl&key=%s"
+           "&numberofdaysback=%d&numberofdaysahead=%d&fmt=json&lang=en") % (
+        HOCKEYTECH_FEED, ECHL_KEY, days_back, days_ahead)
+    try:
+        data = http_get_json(url)
+    except (urllib.error.URLError, urllib.error.HTTPError, ValueError, TimeoutError) as e:
+        sys.stderr.write("  ! echl fetch failed: %s\n" % e)
+        return []
+    return (data.get("SiteKit") or {}).get("Scorebar") or []
+
+
+def _echl_side(g, prefix):
+    """Pull one side's (Home/Visitor) name, goals, and W-L-OTL record."""
+    name = g.get(prefix + "LongName") or "%s %s" % (
+        g.get(prefix + "City", ""), g.get(prefix + "Nickname", ""))
+    try:
+        goals = int(g.get(prefix + "Goals"))
+    except (TypeError, ValueError):
+        goals = None
+    w = g.get(prefix + "Wins")
+    rl = g.get(prefix + "RegulationLosses")
+    otl = g.get(prefix + "OTLosses")
+    sol = g.get(prefix + "ShootoutLosses")
+    record = None
+    try:
+        record = "%d-%d-%d" % (int(w), int(rl), int(otl) + int(sol))
+    except (TypeError, ValueError):
+        pass
+    return name.strip(), goals, record
+
+
+def parse_echl_team(games, match, team_name, league_label, today):
+    """From the league-wide scorebar, keep games involving our team (matched on
+    `match`, e.g. 'Indy') and emit the same fact shape as the ESPN teams: the
+    most-recent result and soonest upcoming."""
+    m = match.lower()
+    results, upcoming = [], []
+    for g in games:
+        home_is_us = (m in (g.get("HomeCity", "") + g.get("HomeLongName", "")).lower())
+        away_is_us = (m in (g.get("VisitorCity", "") + g.get("VisitorLongName", "")).lower())
+        if not (home_is_us or away_is_us):
+            continue
+        us_pre, them_pre = ("Home", "Visitor") if home_is_us else ("Visitor", "Home")
+        _, us_goals, record = _echl_side(g, us_pre)
+        opp, them_goals, _ = _echl_side(g, them_pre)
+        try:
+            edt = _parse_iso_to_eastern(g.get("GameDateISO8601", ""))
+        except Exception:
+            continue
+        when = relative_day(edt.date(), today)
+        status = (g.get("GameStatusStringLong") or g.get("GameStatusString") or "").lower()
+        gstatus = str(g.get("GameStatus") or "")
+
+        if "final" in status or gstatus == "4":
+            score = None
+            if isinstance(us_goals, int) and isinstance(them_goals, int):
+                hi, lo = (us_goals, them_goals) if us_goals >= them_goals else (them_goals, us_goals)
+                score = "%d-%d" % (hi, lo)
+            won = (us_goals is not None and them_goals is not None and us_goals > them_goals)
+            results.append((edt, {
+                "kind": "result", "league": league_label, "team": team_name,
+                "won": won, "tie": False, "opponent": opp, "score": score,
+                "record": record, "when": when,
+            }))
+        else:
+            live = gstatus in ("2", "3") or "progress" in status
+            if when in ("today", "tonight") and edt.hour >= 17:
+                when = "tonight"
+            upcoming.append((edt, {
+                "kind": "live" if live else "upcoming", "league": league_label,
+                "team": team_name, "opponent": opp, "home": home_is_us,
+                "record": record, "when": when, "time": fmt_time(edt),
+            }))
+
+    out = []
+    if results:
+        out.append(max(results, key=lambda x: x[0])[1])
+    if upcoming:
+        out.append(min(upcoming, key=lambda x: x[0])[1])
     return out
 
 
@@ -638,17 +830,22 @@ NATIONAL_EVENTS = [
 
 
 def build_facts(entry, today, offline_events=None, offline_standings=None,
-                offline_leaders=None):
+                offline_leaders=None, offline_milb=None, offline_echl=None):
     """Fetch each unique league ONCE over a short window, then parse per team.
     Many teams share a league (four colleges all play basketball), so fetching
     per unique path instead of per team avoids hammering the same endpoint.
-    offline_* : optional dicts to bypass the network (tests)."""
+    Non-ESPN teams (source="milb"/"echl") use their own feeds, kept fully
+    isolated from the ESPN path. offline_* : optional dicts to bypass network."""
     # yesterday catches last night's result; +3 catches the upcoming weekend for
     # weekly sports like college football without flooding daily sports.
     window = [today + timedelta(days=d) for d in (-1, 0, 1, 2, 3)]
 
+    espn_teams = [t for t in entry["teams"] if not t.get("source")]
+    milb_teams = [t for t in entry["teams"] if t.get("source") == "milb"]
+    echl_teams = [t for t in entry["teams"] if t.get("source") == "echl"]
+
     paths = []
-    for t in entry["teams"]:
+    for t in espn_teams:
         if t["path"] not in paths:
             paths.append(t["path"])
     for e in entry.get("events", []):
@@ -682,9 +879,13 @@ def build_facts(entry, today, offline_events=None, offline_standings=None,
         standing_by_team.update(parse_standings(data, today.year))
 
     facts = []
-    for t in entry["teams"]:
-        facts.extend(parse_team_games(
-            events_by_path.get(t["path"], []), t["name"], t["league"], today))
+    for t in espn_teams:
+        tf = parse_team_games(
+            events_by_path.get(t["path"], []), t["name"], t["league"], today)
+        if t.get("out_of_market"):
+            for f in tf:
+                f["out_of_market"] = True
+        facts.extend(tf)
     for e in entry.get("events", []):
         facts.extend(parse_event_matches(
             events_by_path.get(e["path"], []), e["league"], today,
@@ -693,10 +894,35 @@ def build_facts(entry, today, offline_events=None, offline_standings=None,
         facts.extend(parse_national_event(
             events_by_path.get(e["path"], []), e["league"], today))
 
+    # MiLB teams (e.g. the Indianapolis Indians) via statsapi -- fully isolated
+    # from the ESPN path above; any fetch failure just yields no facts.
+    for t in milb_teams:
+        if offline_milb is not None:
+            games = offline_milb.get(t["team_id"], [])
+        elif offline_events is None:
+            games = fetch_milb_schedule(t["team_id"], window[0], window[-1])
+        else:
+            games = []
+        facts.extend(parse_milb_team(
+            games, t["team_id"], t["name"], t["league"], today))
+
+    # ECHL teams (e.g. the Indy Fuel) via HockeyTech's league-wide scorebar --
+    # fetched once and filtered per team; same isolation/graceful rules.
+    if echl_teams:
+        if offline_echl is not None:
+            scorebar = offline_echl
+        elif offline_events is None:
+            scorebar = fetch_echl_scorebar()
+        else:
+            scorebar = []
+        for t in echl_teams:
+            facts.extend(parse_echl_team(
+                scorebar, t["match"], t["name"], t["league"], today))
+
     # Player stat leaders. Only for leagues that (a) we configured and (b) are in
     # season -- gated on a game in the window, which avoids stale offseason stats.
     tracked_by_path = {}
-    for t in entry["teams"]:
+    for t in espn_teams:
         if t.get("players") and t["path"] in LEADER_LEAGUES:
             tracked_by_path.setdefault(t["path"], []).extend(t["players"])
     for p, cfg in LEADER_LEAGUES.items():
@@ -718,13 +944,17 @@ def build_facts(entry, today, offline_events=None, offline_standings=None,
              "stat": cfg["label"], "unit": cfg["unit"], **t}
             for t in tracked if not (ll and t["player"] == ll["player"])
         ]
-        # The generic league leader earns a line ONLY when it has a local hook
-        # (the leader plays for our team) or there's no local star to talk about.
-        # Otherwise it's just trivia about a player nobody here follows.
-        if ll and (local_is_leader or not local_facts):
-            facts.append({"kind": "leader", "scope": "league",
-                          "league": cfg["league"], "stat": cfg["label"],
-                          "unit": cfg["unit"], **ll})
+        # The generic league leader earns a HEADLINE line only when it has a
+        # local hook (the leader plays for our team) or there's no local star to
+        # talk about. Otherwise it's trivia nobody here follows for a headline --
+        # but it's good ticker fuel, so keep it tagged ticker_only.
+        if ll:
+            lead_fact = {"kind": "leader", "scope": "league",
+                         "league": cfg["league"], "stat": cfg["label"],
+                         "unit": cfg["unit"], **ll}
+            if not (local_is_leader or not local_facts):
+                lead_fact["ticker_only"] = True
+            facts.append(lead_fact)
         facts.extend(local_facts)
 
     # Enrich team facts with standings: seed, conference, and (preferring the
@@ -811,7 +1041,12 @@ SYSTEM_PROMPT = (
     "deserves the TOP line even though no local team is involved; people in every "
     "city discuss the Finals. Rank roughly: a title just decided or underway > a "
     "big event hosted here (World Cup) > a local team's notable result or game > "
-    "a routine local game.\n\n"
+    "a routine local game.\n"
+    "- A fact marked `out_of_market` is a team some locals follow but that isn't "
+    "truly local (e.g. the Blackhawks for Indianapolis). Lowest headline "
+    "priority: feature it ONLY if it's genuinely notable (a playoff run, a big "
+    "result) AND nothing bigger is happening. Otherwise leave it out of the "
+    "talking points -- it still shows up in the day's ticker.\n\n"
     "BIG EVENTS:\n"
     "- World Cup: the talking point is that it's being hosted in the US right "
     "now -- a big deal even for people who never watch soccer. Lead with that "
@@ -834,17 +1069,25 @@ SYSTEM_PROMPT = (
     "- 2 to 4 short lines, each starting with '* ', each on a DIFFERENT topic. "
     "Prefer fewer strong lines over padding -- if there are only two real topics "
     "today, write two. Never repeat a topic to reach a number.\n"
-    "- Then ONE final line starting 'Escape hatch: ' -- ONE sentence, built "
-    "around ONE clear idea, that the reader can say to bow out gracefully by "
-    "handing the floor back. It must read like a natural spoken question, not a "
-    "compressed data point. It must ask about something that ALREADY happened or "
-    "the other person's take -- NEVER a prediction ('who'll win?', 'who'll take "
-    "the next title?'). Do NOT mash two things together (e.g. today's game AND "
-    "last game). Whenever the facts give a concrete angle -- a title just won, "
-    "an event hosted here, a team's story this season -- build the hatch around "
-    "THAT as a curious handoff ('crazy the Knicks finally won one -- who "
-    "impressed you?'), not a blank 'what'd I miss'. Fall back to a generic line "
-    "only when there's nothing specific. Never invent a stat or storyline.\n"
+    "- Then ONE final line starting 'Escape hatch: '. This is the reader's way "
+    "OUT of the conversation -- a line that lets them tap out gracefully without "
+    "needing to know anything, by handing it fully to the other person and "
+    "stepping back. It is NOT a curiosity question that keeps them on the hook. "
+    "The test: after the reader says it, they can stop talking and the fan "
+    "carries on. Rotate (using variety_seed) between these REAL exit moves so it "
+    "never feels samey:\n"
+    "    1. Defer to them: 'you follow this way closer than I do.'\n"
+    "    2. Honest punt: 'I mostly just catch the highlights, honestly.'\n"
+    "    3. Hand off and bow out: 'tell me how it shakes out.'\n"
+    "    4. Lob it and let them run: 'sounds like the Fever are the ones to "
+    "watch -- you been keeping up with them?' (a question is fine ONLY if it "
+    "clearly puts THEM in the talker's seat and lets the reader coast).\n"
+    "  Prefer a statement over a question when in doubt -- a statement closes "
+    "the reader's turn; a question can reopen it back onto them. Tie it to a "
+    "real angle from the day when there is one, but the move itself is the exit, "
+    "not a quiz. NEVER ask the reader to predict, analyze, or judge, and never "
+    "invent a stat or storyline. Vary the shape day to day; do not reuse 'did "
+    "you catch X' / 'what'd you make of X' every time.\n"
     "- VARIETY: a `variety_seed` integer is provided. Use it to vary your "
     "opening, your sentence shapes, and which fact leads, so someone checking "
     "daily doesn't get the same template every time. Never mention the seed.\n"
@@ -863,7 +1106,9 @@ def phrase_with_groq(facts, city_label, date_label, context_lines):
         "city": city_label,
         "date": date_label,
         "variety_seed": sum(ord(c) for c in date_label) % 97,
-        "live_facts": facts,
+        # ticker_only facts (e.g. a non-local league leader) feed the page ticker,
+        # not the headline talking points -- keep them out of the model's view.
+        "live_facts": [f for f in facts if not f.get("ticker_only")],
         "context": context_lines,
     }
     req_body = {
@@ -1012,11 +1257,54 @@ def facts_to_text(facts):
                     f["stat"], f["value"], f["unit"]))
     return "\n".join(lines)
 
-# ---------------------------------------------------------------------------
-# Static site build  (digest.json + baked index.html for GitHub/Cloudflare)
-# ---------------------------------------------------------------------------
 
-def split_digest(text):
+def build_ticker(facts, today):
+    """Terse, broadcast-style ticker strings built straight from real facts (no
+    model, so nothing here can be invented). This is the B-side: the full slate
+    of scores, standings, and leaders -- including ones that never made the
+    headline talking points (like a non-local league scoring leader)."""
+    items, seen = [], set()
+
+    def push(s):
+        s = " ".join(s.split()).strip(" -·")
+        if s and s.lower() not in seen:
+            seen.add(s.lower())
+            items.append(s)
+
+    push(today.strftime("%a %b ").upper() + str(today.day))  # e.g. "SAT JUN 20"
+
+    for f in facts:
+        k = f.get("kind")
+        lg = (f.get("league") or f.get("event") or "").upper()
+        if k == "result":
+            verb = "drew with" if f.get("tie") else ("beat" if f.get("won") else "lost to")
+            push("%s · %s %s %s %s" % (lg, f.get("team", ""), verb,
+                                       f.get("opponent", "?"), f.get("score", "")))
+        elif k in ("upcoming", "live"):
+            prep = "vs" if f.get("home") else "at"
+            tag = "LIVE" if k == "live" else lg
+            push("%s · %s %s %s %s %s" % (tag, f.get("team", ""), prep,
+                                          f.get("opponent", "?"),
+                                          f.get("when", ""), f.get("time", "")))
+        elif k == "event_result":
+            push("%s · %s" % (lg, f.get("detail", "")))
+        elif k == "event_upcoming":
+            push("%s · %s %s" % (lg, f.get("detail", ""), f.get("when", "")))
+        elif k == "event_active":
+            push("%s · underway" % lg)
+        elif k == "marquee":
+            push("%s · %s %s" % ((f.get("round") or lg).upper(),
+                                 f.get("detail", ""), f.get("when", "")))
+        elif k == "leader":
+            stat = (f.get("stat") or "").upper()
+            if f.get("scope") == "league":
+                push("%s %s · %s %s" % (lg, stat, f.get("player", ""), f.get("value", "")))
+            else:
+                push("%s %s · %s %s, %s" % (lg, stat, f.get("player", ""),
+                                            _ordinal(f.get("rank") or 0), f.get("value", "")))
+    return items
+
+
     """Parse the model's plain-text output into (lines, escape_hatch)."""
     lines, hatch = [], ""
     for raw in text.splitlines():
@@ -1350,6 +1638,7 @@ def build_site(out_dir, city_key, today, db_path=DEFAULT_DB, refresh=False,
         "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "lines": lines,
         "escape_hatch": hatch,
+        "ticker": build_ticker(facts, today),
         "display": digest_text,
         "speech": to_speech(lines, hatch, entry["label"], date_label),
     }

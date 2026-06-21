@@ -8,6 +8,12 @@ It exists because following sports is a whole social currency that some of us ne
 
 ---
 
+## What this actually is
+
+A personal, vibe-coded project. I built it mostly for myself — and specifically so my smart speaker (Home Assistant / "Nabu") could read me a quick sports brief in the morning before I leave the house. I already owned the domain, I wanted a few extra eyes to test it, and publishing a static page costs nothing, so I put it out for anyone who finds it useful. That's the whole origin story. It's not a startup, there's no plan, and it's pointed squarely at one city (mine) on purpose.
+
+---
+
 ## What it actually does
 
 Once a day it pulls **real** sports data, hands it to a small language model that's only allowed to *phrase* it (never invent), and publishes a short digest. A typical day reads like:
@@ -35,20 +41,20 @@ So when it says "Caitlin Clark averages about 21 a game," that 21 came from a li
 For Indianapolis (the only city it covers right now), it tracks:
 
 - **Pro teams** — Pacers, Fever, Colts, and Indy Eleven (soccer).
+- **Minor-league teams** — the Indianapolis Indians (Triple-A baseball) and the Indy Fuel (ECHL hockey), pulled from feeds ESPN doesn't carry.
 - **College** — Indiana, Purdue, Notre Dame, and Butler, across football, basketball, and baseball, plus Notre Dame hockey.
 - **National championships** — the NBA Finals, Super Bowl, World Series, and Stanley Cup surface even when no local team is involved, because everyone talks about those.
 - **The World Cup** — currently being hosted in the US, which is a talking point even for people who never watch soccer.
+- **A nod to out-of-market** — some Hoosiers follow the Chicago Blackhawks, so they ride along at a lower priority.
 - **Trends** — a team's record and standing ("third in the East"), and local star players' stats ("Caitlin Clark is one of the top scorers in the league").
 
-It leans local first. A national stat about a player nobody here follows gets dropped in favor of the Fever and their stars.
-
-It only speaks up about what's actually in season — a team idle in its offseason won't show a stale line.
+It leans local first. A national stat about a player nobody here follows gets dropped in favor of the Fever and their stars. And it only speaks up about what's actually in season — a team idle in its offseason won't show a stale line.
 
 ---
 
 ## How it's built (the short version)
 
-- **Data:** free public sports JSON feeds (scores, standings, leaderboards).
+- **Data:** free public sports feeds — ESPN for the majors and colleges, MLB's own stats API for Triple-A, and HockeyTech for the ECHL.
 - **Phrasing:** a small, fast language model, given the facts and strict instructions to phrase-not-invent.
 - **Publishing:** generated once each morning by an automated job and served as a plain static web page. One generation a day, shared by everyone who visits — which is what keeps it essentially free to run.
 - **Privacy:** no tracking, no cookies, no analytics, no accounts. It's a page that shows you the day's digest and nothing else.
@@ -67,6 +73,6 @@ Alongside the web page, it publishes a machine-readable `digest.json` with a spe
 
 ## Status
 
-Live and running for Indianapolis. The architecture is built to add more cities later — it's mostly data entry — but the digest is deliberately one-city, one-generation-a-day while it proves itself.
+Live and running for Indianapolis. The architecture could add more cities later — it's mostly data entry — but the digest is deliberately one-city while it's really just my morning brief that happens to be public.
 
 It's a personal project, free to use, with a tip link in the footer for anyone feeling generous. The money goes to API tokens and homelab gear, not to getting rich.

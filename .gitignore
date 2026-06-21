@@ -5,6 +5,7 @@
 *.sqlite
 site/
 sample_page_preview.html
+SETUP.md
 
 # Python
 __pycache__/
