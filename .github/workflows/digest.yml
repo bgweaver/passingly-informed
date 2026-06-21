@@ -6,14 +6,16 @@ name: Daily digest
 #   a day, shared by every visitor. That "once a day" schedule IS the rate limit
 #   that keeps your Groq usage near zero.
 #
-# DST NOTE
-#   GitHub cron is always UTC and cannot do timezones. 11:30 UTC is 7:30am during
-#   Eastern Daylight Time and 6:30am during Eastern Standard Time -- early enough
-#   either way. Adjust the minute/hour if you want, or add a second line.
+# DST + timing
+#   GitHub cron is UTC only and can't follow daylight saving, and it sometimes
+#   delays scheduled runs by a few minutes. 09:00 UTC lands at 5:00am Eastern in
+#   summer (EDT) and 4:00am in winter (EST) -- so even with a delay and the
+#   minute or two it takes to build, the digest is published well before 6:00am
+#   your time, year-round. (Want weekdays only? Use "0 9 * * 1-5".)
 
 on:
   schedule:
-    - cron: "30 11 * * *"
+    - cron: "0 9 * * *"
   workflow_dispatch: {}   # lets you trigger a run by hand from the Actions tab
 
 # Least privilege: only what Pages deployment needs.
