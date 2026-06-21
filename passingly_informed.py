@@ -1305,6 +1305,11 @@ def build_ticker(facts, today):
     return items
 
 
+# ---------------------------------------------------------------------------
+# Static site build  (digest.json + baked index.html for GitHub/Cloudflare)
+# ---------------------------------------------------------------------------
+
+def split_digest(text):
     """Parse the model's plain-text output into (lines, escape_hatch)."""
     lines, hatch = [], ""
     for raw in text.splitlines():
