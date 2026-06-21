@@ -1322,18 +1322,20 @@ def build_ticker(facts, today):
 # ---------------------------------------------------------------------------
 
 def split_digest(text):
-    """Parse the model's plain-text output into (lines, escape_hatch)."""
+    """Parse the model's plain-text output into (lines, escape_hatch). Tolerant
+    of the model occasionally putting a '* ' bullet in front of the escape-hatch
+    line: we strip a leading bullet before checking, so the 'out' is always
+    pulled out rather than leaking in as a talking point."""
     lines, hatch = [], ""
     for raw in text.splitlines():
         s = raw.strip()
         if not s:
             continue
-        if s.lower().startswith("escape hatch:"):
-            hatch = s.split(":", 1)[1].strip()
-        elif s.startswith("* "):
-            lines.append(s[2:].strip())
-        elif s.startswith("*"):
-            lines.append(s[1:].strip())
+        body = re.sub(r"^[\*\-\u2022]+\s*", "", s)  # drop a leading bullet, if any
+        if body.lower().startswith("escape hatch:"):
+            hatch = body.split(":", 1)[1].strip()
+        elif s[:1] in "*\u2022":
+            lines.append(body)
     return lines, hatch
 
 
