@@ -1362,13 +1362,20 @@ def split_digest(text):
     return lines, hatch
 
 
+def _speakable(text):
+    """Make a string read naturally aloud. Mainly: turn '119-63' into '119 to
+    63' so the TTS engine doesn't spell out '. one one nine six three'. Same for
+    records like '9-7'. Leaves a lone hyphen/dash between words alone."""
+    return re.sub(r"(\d)\s*[-\u2013\u2014]\s*(\d)", r"\1 to \2", text)
+
+
 def to_speech(lines, hatch, city, date_label):
     """A TTS-friendly paragraph so Home Assistant doesn't read 'asterisk' aloud."""
     body = " ".join(lines) if lines else "It's a quiet sports day, not much to report."
     out = "Here's the sports talk for %s, %s. %s" % (city, date_label, body)
     if hatch:
         out += " And if it gets away from you, your out is: %s" % hatch
-    return out
+    return _speakable(out)
 
 
 HTML_TEMPLATE = """<!DOCTYPE html>
