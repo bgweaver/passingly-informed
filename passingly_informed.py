@@ -79,11 +79,13 @@ def _env(name, default):
 
 
 # Groq model. Groq deprecates models periodically (llama-3.3-70b-versatile was
-# retired June 2026). gpt-oss-20b is fast, cheap, and plenty for phrasing a few
-# facts. gpt-oss-120b is higher quality but noticeably slower. If the API 404s on
-# the model, list current ones with:
+# retired June 2026). gpt-oss-120b follows the phrasing rules more reliably and
+# invents less than the 20b; at one generation a day the extra cost is pennies a
+# month (often free-tier). Drop to openai/gpt-oss-20b if you ever want it faster.
+# Both are gpt-oss reasoning models, so the reasoning_effort handling below
+# applies to either. If the API 404s on the model, list current ones with:
 #   curl -H "Authorization: Bearer $GROQ_API_KEY" https://api.groq.com/openai/v1/models
-GROQ_MODEL = _env("GROQ_MODEL", "openai/gpt-oss-20b")
+GROQ_MODEL = _env("GROQ_MODEL", "openai/gpt-oss-120b")
 GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
 
 ESPN_BASE = "https://site.api.espn.com/apis/site/v2/sports"
@@ -947,25 +949,18 @@ def build_facts(entry, today, offline_events=None, offline_standings=None,
         res = parse_leaders(data, cfg["stat"], tracked_by_path.get(p, []))
         ll = res.get("league_leader")
         tracked = res.get("tracked", [])
-        local_is_leader = bool(ll and any(t["player"] == ll["player"] for t in tracked))
-        # Local stars (excluding the one who IS the league leader -- reported below).
-        local_facts = [
-            {"kind": "leader", "scope": "local", "league": cfg["league"],
-             "stat": cfg["label"], "unit": cfg["unit"], **t}
-            for t in tracked if not (ll and t["player"] == ll["player"])
-        ]
-        # The generic league leader earns a HEADLINE line only when it has a
-        # local hook (the leader plays for our team) or there's no local star to
-        # talk about. Otherwise it's trivia nobody here follows for a headline --
-        # but it's good ticker fuel, so keep it tagged ticker_only.
+        # Stat leaders are TICKER-ONLY. A season scoring average ('Clark ~21 a
+        # game') barely moves day to day, so as a daily headline it's stale
+        # repetition. It's good ticker fuel, never a talking point.
+        for t in tracked:
+            if not (ll and t["player"] == ll["player"]):
+                facts.append({"kind": "leader", "scope": "local",
+                              "league": cfg["league"], "stat": cfg["label"],
+                              "unit": cfg["unit"], "ticker_only": True, **t})
         if ll:
-            lead_fact = {"kind": "leader", "scope": "league",
-                         "league": cfg["league"], "stat": cfg["label"],
-                         "unit": cfg["unit"], **ll}
-            if not (local_is_leader or not local_facts):
-                lead_fact["ticker_only"] = True
-            facts.append(lead_fact)
-        facts.extend(local_facts)
+            facts.append({"kind": "leader", "scope": "league",
+                          "league": cfg["league"], "stat": cfg["label"],
+                          "unit": cfg["unit"], "ticker_only": True, **ll})
 
     # Enrich team facts with standings: seed, conference, and (preferring the
     # standings table's record over a possibly-older scoreboard record).
@@ -1013,15 +1008,21 @@ SYSTEM_PROMPT = (
     "- No predictions, no opinions, no tactics, no stats. The reader cannot "
     "defend any of it.\n\n"
     "HOW TO WRITE THE LINES:\n"
-    "- Each team gets ONE short bullet built from the 1-2 most conversation-worthy "
-    "facts about them -- NOT every fact you were given. People mention a team's "
-    "most interesting thing or two, not its full line score. Good: 'The Fever "
-    "lost to the Dream last night and host the Mercury tomorrow.' or 'The Fever "
-    "are 9-7, third in the East.' BAD: cramming result AND record AND standing "
-    "AND next game AND a stat into one breath, or stringing facts together with "
-    "semicolons. If you have lots of facts about one team, PICK the best and let "
-    "the rest go -- the ticker carries the full slate. Keep it to one bullet, at "
-    "most two short sentences, no semicolon run-ons.\n"
+    "- ONE topic per bullet, ONE bullet per topic. A bullet is about a SINGLE "
+    "team or a SINGLE event. NEVER combine two different teams or two different "
+    "sports in one bullet (no 'the World Cup is on AND the Cubs won'). If two "
+    "things are worth saying, they are two separate bullets.\n"
+    "- Start EVERY bullet with its sport/league in square brackets, taken from "
+    "that fact's `league` field, e.g. '* [WNBA] ...', '* [Triple-A] ...', "
+    "'* [World Cup] ...', '* [ECHL] ...'. Exactly one bracketed tag per bullet, "
+    "right after the '* '.\n"
+    "- Build each bullet from the 1-2 most conversation-worthy facts about that "
+    "one team or event -- NOT its full line score. People mention the "
+    "interesting thing or two, not every number. Good: '* [WNBA] The Fever lost "
+    "to the Mercury last night and host the Sparks Saturday.' BAD: cramming "
+    "result AND record AND standing AND next game into one breath, or stringing "
+    "facts with semicolons. Pick the best and let the rest go -- the ticker "
+    "carries the full slate. At most two short sentences, no semicolon runs.\n"
     "- NAMES: keep an opponent's FULL name (city + nickname) whenever shortening "
     "it would point at the wrong, more-famous team. Minor-league nicknames "
     "constantly collide with the majors, so write 'Iowa Cubs' (never 'the Cubs' "
@@ -1043,15 +1044,8 @@ SYSTEM_PROMPT = (
     "build the escape hatch around. State only what's given -- do NOT "
     "characterize it ('best in the league', 'on a tear') unless that's "
     "provided.\n"
-    "- A `leader` fact is a real player stat: their rank and number in something "
-    "like scoring. A LOCAL star (scope 'local', e.g. Caitlin Clark) is an "
-    "excellent hook. Lead with the plain point and let the number support it, "
-    "the way a person actually talks: 'Caitlin Clark's been the bright spot for "
-    "the Fever -- scoring around 21 a game' -- NOT 'Caitlin Clark is 4th in WNBA "
-    "scoring at 20.79'. ROUND numbers to how people say them out loud (20.79 -> "
-    "'about 21'); never inflate or invent, but a recited decimal is the wrong "
-    "register. Work in the rank only if it stays natural ('one of the top "
-    "scorers', 'fourth in the league').\n\n"
+    "- Player stat leaders are handled separately (they live in the ticker), so "
+    "you will not be given them here and should not invent any.\n\n"
     "LEAD WITH THE BIGGEST STORY. Not every fact is equal. A `marquee` fact -- a "
     "national championship or its games (NBA Finals, Super Bowl, World Series, "
     "Stanley Cup) -- is what the whole country is talking about, so it usually "
@@ -1065,10 +1059,13 @@ SYSTEM_PROMPT = (
     "result) AND nothing bigger is happening. Otherwise leave it out of the "
     "talking points -- it still shows up in the day's ticker.\n\n"
     "BIG EVENTS:\n"
-    "- World Cup: the talking point is that it's being hosted in the US right "
-    "now -- a big deal even for people who never watch soccer. Lead with that "
-    "framing; a US match is the specific hook. Skip foreign matches with no "
-    "hook.\n"
+    "- World Cup: it's being hosted in the United States this summer -- THAT is "
+    "the hook, a big deal even for people who never watch soccer. When the USA "
+    "has a match, the hook is simply that the US is playing: say 'the US play "
+    "Turkey tonight', naming the opponent country as the other TEAM. NEVER say "
+    "the tournament is 'in' another country -- an opponent like Turkey is who "
+    "the US plays, not where the Cup is held (it's in the US). Skip foreign "
+    "matches that have no US hook.\n"
     "- A `marquee` championship result (a team just won the title) is a strong "
     "opener: state who won plainly, then hand off ('wild they finally won one -- "
     "you been following it?').\n\n"
@@ -1083,13 +1080,16 @@ SYSTEM_PROMPT = (
     "the East'); just don't stack stats like a box score. If a line sounds like "
     "a stat sheet, rewrite it as something a person would say.\n\n"
     "OUTPUT:\n"
-    "- Aim for 3 to 4 short lines when the day has that much real material -- it "
-    "usually does. Each starts with '* ' and covers a DIFFERENT topic. After the "
-    "biggest stories, USE the other real local topics you were given rather than "
-    "leaving them for the ticker: a local team that actually played -- Indy "
-    "Eleven, the Indianapolis Indians, the Indy Fuel, a college team -- is worth "
-    "its own line. Only drop to 2 on a genuinely quiet day with little real "
-    "material. Never pad, invent, or repeat a topic just to reach a number.\n"
+    "- Write ONE bullet for each real local topic in the facts -- no more, no "
+    "fewer. Most days that is 2 to 4 bullets. A quiet day with two real topics "
+    "is TWO bullets, and that is correct and good. Do NOT aim for a number.\n"
+    "- HARD RULE, the most important one: only mention teams, players, scores, "
+    "and games that actually appear in the facts below. NEVER introduce a team "
+    "or game you were not given -- do not mention the Chicago Cubs, the Mets, or "
+    "ANY team not in the facts. If you cannot point to a fact for a sentence, do "
+    "not write the sentence. Inventing a score or a game is the single worst "
+    "failure here; fewer real lines always beats one made-up one. Never pad, "
+    "stretch, or invent to fill space.\n"
     "- Then ONE final line starting 'Escape hatch: '. This is the reader's way "
     "OUT of the conversation -- a line that lets them tap out gracefully without "
     "needing to know anything, by handing it fully to the other person and "
@@ -1345,21 +1345,29 @@ def build_ticker(facts, today):
 # ---------------------------------------------------------------------------
 
 def split_digest(text):
-    """Parse the model's plain-text output into (lines, escape_hatch). Tolerant
-    of the model occasionally putting a '* ' bullet in front of the escape-hatch
-    line: we strip a leading bullet before checking, so the 'out' is always
-    pulled out rather than leaking in as a talking point."""
-    lines, hatch = [], ""
+    """Parse the model's output into (lines, tags, escape_hatch). Each bullet may
+    start with a bracketed league tag, e.g. '* [WNBA] The Fever...'; we pull the
+    tag out for the little sport label on the card and keep the clean text (no
+    bracket) for display and speech. Tolerant of a stray bullet on the hatch."""
+    lines, tags, hatch = [], [], ""
     for raw in text.splitlines():
         s = raw.strip()
         if not s:
             continue
-        body = re.sub(r"^[\*\-\u2022]+\s*", "", s)  # drop a leading bullet, if any
-        if body.lower().startswith("escape hatch:"):
-            hatch = body.split(":", 1)[1].strip()
-        elif s[:1] in "*\u2022":
-            lines.append(body)
-    return lines, hatch
+        body = re.sub(r"^[\*\u2022\-]+\s*", "", s)          # drop a leading bullet
+        no_tag = re.sub(r"^\[[^\]]{1,28}\]\s*", "", body)   # ...and a leading [tag], for the hatch check
+        if no_tag.lower().startswith("escape hatch:"):
+            hatch = no_tag.split(":", 1)[1].strip()
+            continue
+        if s[:1] not in "*\u2022":
+            continue
+        tag = ""
+        m = re.match(r"^\[([^\]]{1,28})\]\s*(.*)$", body)
+        if m:
+            tag, body = m.group(1).strip(), m.group(2).strip()
+        lines.append(body)
+        tags.append(tag)
+    return lines, tags, hatch
 
 
 def _speakable(text):
@@ -1434,6 +1442,9 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     border-radius:4px; padding:.7rem .8rem}
   .row:nth-child(2n){border-left-color:var(--green)}
   .row p{margin:0; font-size:1.02rem}
+  .chip{display:block; font-family:var(--mono); font-size:.58rem; letter-spacing:.16em;
+    text-transform:uppercase; color:var(--amber); margin:0 0 .4rem}
+  .row:nth-child(2n) .chip{color:var(--green)}
   .out{margin-top:1.1rem; border:1px dashed var(--faint); border-radius:5px; padding:.7rem .9rem .85rem; background:#0e1521}
   .out .ol{font-family:var(--mono); font-size:.64rem; letter-spacing:.22em; text-transform:uppercase; color:var(--red)}
   .out p{margin:.3rem 0 0; font-style:italic; color:var(--dim)}
@@ -1566,14 +1577,29 @@ def _short_date(iso):
     return d.strftime("%b ") + str(d.day)
 
 
+def _chip_label(tag):
+    """Tidy a model-emitted league tag into a short chip ('FIFA World Cup' ->
+    'WORLD CUP'). Empty tag -> no chip."""
+    t = (tag or "").strip().upper()
+    if not t:
+        return ""
+    t = t.replace("FIFA ", "").replace("MAJOR LEAGUE ", "")
+    return t[:14]
+
+
 def render_day_card(payload, is_today):
-    """One day's digest as a scoreboard-style card: each talking point a row,
-    plus the 'out'."""
+    """One day's digest as a scoreboard-style card: each talking point a row
+    (with its little sport chip), plus the 'out'."""
     lines = payload.get("lines", [])
+    tags = payload.get("line_tags", []) or []
     if lines:
-        rows = "\n".join(
-            '          <div class="row"><p>%s</p></div>' % html.escape(l)
-            for l in lines)
+        row_html = []
+        for i, l in enumerate(lines):
+            chip = _chip_label(tags[i] if i < len(tags) else "")
+            chip_html = ('<span class="chip">%s</span>' % html.escape(chip)) if chip else ""
+            row_html.append('          <div class="row">%s<p>%s</p></div>'
+                            % (chip_html, html.escape(l)))
+        rows = "\n".join(row_html)
     else:
         rows = '          <div class="row"><p>Quiet sports day — nothing worth faking yet.</p></div>'
 
@@ -1706,7 +1732,7 @@ def build_site(out_dir, city_key, today, db_path=DEFAULT_DB, refresh=False,
             facts, entry["label"], date_label, entry.get("context", []))
         save_cache(conn, city_key, today, facts, digest_text)
 
-    lines, hatch = split_digest(digest_text)
+    lines, line_tags, hatch = split_digest(digest_text)
 
     payload = {
         "city": entry["label"],
@@ -1714,6 +1740,7 @@ def build_site(out_dir, city_key, today, db_path=DEFAULT_DB, refresh=False,
         "date_label": date_label,
         "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "lines": lines,
+        "line_tags": line_tags,
         "escape_hatch": hatch,
         "ticker": build_ticker(facts, today),
         "display": digest_text,
