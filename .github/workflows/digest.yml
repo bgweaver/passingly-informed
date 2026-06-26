@@ -1,22 +1,27 @@
 name: Daily digest
 
 # WHAT THIS DOES
-#   Every morning it runs the generator once, which produces site/index.html and
-#   site/digest.json, then publishes that folder to GitHub Pages. One generation
-#   a day, shared by every visitor. That "once a day" schedule IS the rate limit
-#   that keeps your Groq usage near zero.
+#   Runs the generator once -- producing site/index.html and site/digest.json --
+#   then publishes that folder to GitHub Pages. One generation per run, shared by
+#   every visitor. That "once a run" cadence IS the rate limit that keeps Groq
+#   usage near zero.
 #
-# DST + timing
-#   GitHub cron is UTC only and can't follow daylight saving, and it sometimes
-#   delays scheduled runs by a few minutes. 09:00 UTC lands at 5:00am Eastern in
-#   summer (EDT) and 4:00am in winter (EST) -- so even with a delay and the
-#   minute or two it takes to build, the digest is published well before 6:00am
-#   your time, year-round. (Want weekdays only? Use "0 9 * * 1-5".)
+# WHAT TRIGGERS IT
+#   A container on your homelab (the "pusher" CT) fires this every morning at
+#   05:00 your LOCAL time, via the GitHub API (workflow_dispatch). That's the real
+#   schedule now: precise, follows DST on its own, and skips GitHub's cron-queue
+#   delay (which is why we moved off the built-in schedule). If a dispatch ever
+#   fails, the CT pings Iris.
+#
+#   There is intentionally NO GitHub `schedule:` cron here. If you ever want a
+#   built-in fallback for "the CT is down," add a schedule block like:
+#       schedule:
+#         - cron: "0 11 * * *"   # ~07:00 EDT / 06:00 EST
+#   ...but know it rebuilds every day ON TOP of the CT's run -- a redundant
+#   double-build by design. Leave it out unless you actually want that.
 
 on:
-  schedule:
-    - cron: "0 9 * * *"
-  workflow_dispatch: {}   # lets you trigger a run by hand from the Actions tab
+  workflow_dispatch: {}   # triggered by the pusher CT (or by hand from the Actions tab)
 
 # Least privilege: pages deploy + committing the day's archive file back.
 permissions:
@@ -24,7 +29,7 @@ permissions:
   pages: write
   id-token: write
 
-# If a manual run overlaps the scheduled one, let the newer finish.
+# If a dispatched run overlaps a hand-triggered one, let the newer finish.
 concurrency:
   group: pages
   cancel-in-progress: false
@@ -34,7 +39,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -42,7 +46,7 @@ jobs:
       - name: Generate today's digest
         env:
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
-          # Optional overrides -- set these as repo secrets/variables if you want.
+          # Optional overrides -- set as repo secrets/variables if you want.
           # Leaving them unset is fine; the page just hides those bits.
           TIP_URL: ${{ vars.TIP_URL }}
           SOURCE_URL: ${{ vars.SOURCE_URL }}
@@ -64,8 +68,8 @@ jobs:
 
       # The daily rebuild republishes ./site wholesale. GitHub's custom-domain
       # marker is a CNAME file inside the published folder; if it's missing, a
-      # deploy can silently unset the domain. So write it every run. Change this
-      # one line if the domain ever changes.
+      # deploy can silently unset the domain. So write it every run. It must be
+      # the BARE hostname -- no scheme, no markdown, one line.
       - name: Keep custom domain on every deploy
         run: echo "www.passinglyinformed.com" > ./site/CNAME
 
