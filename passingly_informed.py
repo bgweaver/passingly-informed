@@ -117,6 +117,10 @@ SITE_TAGLINE = "The day's sports, translated for people who don't follow sports.
 SITE_BYLINE = ("Generated once a day by a robot \u2014 on instructions from a guy "
                "who mostly can't tell if any of it's right.")
 
+# Canonical site URL -- used for the RSS feed's links and item ids (Buttondown's
+# RSS-to-email keys "new" off these). Override with SITE_URL if the domain moves.
+SITE_URL = os.environ.get("SITE_URL", "https://www.passinglyinformed.com").rstrip("/")
+
 # Tip jar. Put your Liberapay/Ko-fi URL here, or set the TIP_URL env var / GitHub
 # repo variable. Left empty, the entire tip line is hidden.
 TIP_URL = os.environ.get("TIP_URL", "")
@@ -1708,6 +1712,77 @@ def _load_archive(archive_dir, today):
     return payloads
 
 
+def _feed_entry_body(p):
+    """A clean, email-friendly HTML body for one day's digest -- this is what
+    Buttondown turns into the email. Plain tags, no scoreboard chrome."""
+    out = ["<p><strong>%s</strong> &mdash; %s</p>" % (
+        html.escape(p.get("city", "")), html.escape(p.get("date_label", "")))]
+    lines = p.get("lines", [])
+    tags = p.get("line_tags", []) or []
+    if lines:
+        for i, line in enumerate(lines):
+            chip = _chip_label(tags[i] if i < len(tags) else "")
+            label = ("<strong>%s</strong>&nbsp; " % html.escape(chip)) if chip else ""
+            out.append("<p>%s%s</p>" % (label, html.escape(line)))
+    else:
+        out.append("<p>Quiet sports day &mdash; nothing worth faking yet.</p>")
+    if p.get("escape_hatch"):
+        h = p["escape_hatch"]
+        h = h[:1].upper() + h[1:]
+        out.append("<p><em>Your out:</em> %s</p>" % html.escape(h))
+    out.append('<hr>')
+    out.append('<p style="color:#888;font-size:13px">%s</p>' % html.escape(SITE_BYLINE))
+    out.append('<p><a href="%s/">See the scoreboard &rarr;</a></p>' % SITE_URL)
+    return "\n".join(out)
+
+
+def _feed_item(p):
+    from email.utils import format_datetime
+    try:
+        dt = datetime.fromisoformat(p["generated_at"])
+    except (KeyError, ValueError):
+        dt = datetime.fromisoformat(p["date"]).replace(
+            hour=12, tzinfo=timezone.utc)
+    title = "%s sports \u2014 %s" % (p.get("city", ""), p.get("date_label", ""))
+    # guid is stable + unique per day; Buttondown sends an item the first time it
+    # sees a new guid, so one entry per date == one email per day.
+    guid = "%s/digest/%s" % (SITE_URL, p.get("date", ""))
+    return (
+        "  <item>\n"
+        "    <title>%s</title>\n"
+        "    <link>%s/</link>\n"
+        '    <guid isPermaLink="false">%s</guid>\n'
+        "    <pubDate>%s</pubDate>\n"
+        "    <description>%s</description>\n"
+        "  </item>\n"
+    ) % (html.escape(title), SITE_URL, html.escape(guid),
+         format_datetime(dt), html.escape(_feed_entry_body(p)))
+
+
+def render_feed(today_payload, earlier_payloads=None):
+    """RSS 2.0 feed: newest digest first, then recent days. Buttondown's
+    RSS-to-email reads this and sends each new entry as the daily email."""
+    from email.utils import format_datetime
+    earlier_payloads = earlier_payloads or []
+    items = "".join(_feed_item(p) for p in [today_payload] + list(earlier_payloads))
+    return (
+        '<?xml version="1.0" encoding="UTF-8"?>\n'
+        '<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">\n'
+        "<channel>\n"
+        "  <title>Passingly Informed \u2014 %s</title>\n"
+        "  <link>%s/</link>\n"
+        '  <atom:link href="%s/feed.xml" rel="self" type="application/rss+xml"/>\n'
+        "  <description>%s</description>\n"
+        "  <language>en-us</language>\n"
+        "  <lastBuildDate>%s</lastBuildDate>\n"
+        "%s"
+        "</channel>\n"
+        "</rss>\n"
+    ) % (html.escape(today_payload.get("city", "")), SITE_URL, SITE_URL,
+         html.escape(SITE_TAGLINE), format_datetime(datetime.now(timezone.utc)),
+         items)
+
+
 def build_site(out_dir, city_key, today, db_path=DEFAULT_DB, refresh=False,
                archive_dir=ARCHIVE_DIR):
     """Write digest.json + a single index.html into out_dir. index.html holds
@@ -1763,6 +1838,10 @@ def build_site(out_dir, city_key, today, db_path=DEFAULT_DB, refresh=False,
     earlier = [p for p in recent if p.get("date") != today.isoformat()]
     with open(os.path.join(out_dir, "index.html"), "w", encoding="utf-8") as f:
         f.write(render_html(payload, earlier_payloads=earlier))
+
+    # feed.xml: Buttondown's RSS-to-email reads this to send the daily email.
+    with open(os.path.join(out_dir, "feed.xml"), "w", encoding="utf-8") as f:
+        f.write(render_feed(payload, earlier_payloads=earlier))
     return payload
 
 
