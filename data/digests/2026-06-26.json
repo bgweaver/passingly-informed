@@ -2,15 +2,17 @@
   "city": "Indianapolis",
   "date": "2026-06-26",
   "date_label": "Friday, June 26",
-  "generated_at": "2026-06-26T09:01:02+00:00",
+  "generated_at": "2026-06-26T21:46:01+00:00",
   "lines": [
-    "Turkey beat United States 3-2 yesterday.",
-    "The Indiana Fever are 10-8, third in the Eastern Conference, and host the Los Angeles Sparks tomorrow at 8 PM.",
-    "The Indianapolis Indians lost 6-4 to the Scranton/Wilkes‑Barre RailRiders yesterday and will host them again tonight at 7:05 PM."
+    "Turkey beat the United States 3-2 yesterday.",
+    "The Indiana Fever are 10-8, third in the Eastern Conference and host the Los Angeles Sparks tomorrow at 8:00 PM ET.",
+    "The Indianapolis Indians lost 6-4 to the Scranton/Wilkes‑Barre RailRiders yesterday, falling to 32-46.",
+    "The Indianapolis Indians host the Scranton/Wilkes‑Barre RailRiders tonight at 7:05 PM ET."
   ],
   "line_tags": [
     "World Cup",
     "WNBA",
+    "Triple-A",
     "Triple-A"
   ],
   "escape_hatch": "I mostly just catch the highlights, honestly.",
@@ -23,6 +25,6 @@
     "WNBA SCORING · Caitlin Clark 5th, 21.2",
     "WNBA SCORING · Aliyah Boston 15th, 17"
   ],
-  "display": "* [World Cup] Turkey beat United States 3-2 yesterday.  \n* [WNBA] The Indiana Fever are 10-8, third in the Eastern Conference, and host the Los Angeles Sparks tomorrow at 8 PM.  \n* [Triple-A] The Indianapolis Indians lost 6-4 to the Scranton/Wilkes‑Barre RailRiders yesterday and will host them again tonight at 7:05 PM.  \n\nEscape hatch: I mostly just catch the highlights, honestly.",
-  "speech": "Here's the sports talk for Indianapolis, Friday, June 26. Turkey beat United States 3 to 2 yesterday. The Indiana Fever are 10 to 8, third in the Eastern Conference, and host the Los Angeles Sparks tomorrow at 8 PM. The Indianapolis Indians lost 6 to 4 to the Scranton/Wilkes‑Barre RailRiders yesterday and will host them again tonight at 7:05 PM. And if it gets away from you, your out is: I mostly just catch the highlights, honestly."
+  "display": "* [World Cup] Turkey beat the United States 3-2 yesterday.  \n* [WNBA] The Indiana Fever are 10-8, third in the Eastern Conference and host the Los Angeles Sparks tomorrow at 8:00 PM ET.  \n* [Triple-A] The Indianapolis Indians lost 6-4 to the Scranton/Wilkes‑Barre RailRiders yesterday, falling to 32-46.  \n* [Triple-A] The Indianapolis Indians host the Scranton/Wilkes‑Barre RailRiders tonight at 7:05 PM ET.  \n\nEscape hatch: I mostly just catch the highlights, honestly.",
+  "speech": "Here's the sports talk for Indianapolis, Friday, June 26. Turkey beat the United States 3 to 2 yesterday. The Indiana Fever are 10 to 8, third in the Eastern Conference and host the Los Angeles Sparks tomorrow at 8:00 PM ET. The Indianapolis Indians lost 6 to 4 to the Scranton/Wilkes‑Barre RailRiders yesterday, falling to 32 to 46. The Indianapolis Indians host the Scranton/Wilkes‑Barre RailRiders tonight at 7:05 PM ET. And if it gets away from you, your out is: I mostly just catch the highlights, honestly."
 }
