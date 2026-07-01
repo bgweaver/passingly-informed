@@ -1,0 +1,30 @@
+{
+  "city": "Indianapolis",
+  "date": "2026-07-01",
+  "date_label": "Wednesday, July 1",
+  "generated_at": "2026-07-01T09:00:46+00:00",
+  "lines": [
+    "The United States play Bosnia‑Herzegovina tonight at 8 PM ET.",
+    "The Indianapolis Indians beat the Omaha Storm Chasers 12‑5 yesterday.",
+    "The Indians return to Omaha tonight at 8:05 PM ET.",
+    "Indy Eleven host Charleston Battery on Saturday at 4 PM ET."
+  ],
+  "line_tags": [
+    "World Cup",
+    "Triple-A",
+    "Triple-A",
+    "USL Championship"
+  ],
+  "escape_hatch": "I mostly just catch the highlights, honestly.",
+  "ticker": [
+    "WED JUL 1",
+    "USL CHAMPIONSHIP · Indy Eleven vs Charleston Battery Saturday 4:00 PM ET",
+    "FIFA WORLD CUP · United States vs Bosnia-Herzegovina today",
+    "TRIPLE-A · Indianapolis Indians beat Omaha Storm Chasers 12-5",
+    "TRIPLE-A · Indianapolis Indians at Omaha Storm Chasers tonight 8:05 PM ET",
+    "WNBA SCORING · Caitlin Clark 4th, 21.2",
+    "WNBA SCORING · Aliyah Boston 14th, 17"
+  ],
+  "display": "* [World Cup] The United States play Bosnia‑Herzegovina tonight at 8 PM ET.\n\n* [Triple-A] The Indianapolis Indians beat the Omaha Storm Chasers 12‑5 yesterday.\n\n* [Triple-A] The Indians return to Omaha tonight at 8:05 PM ET.\n\n* [USL Championship] Indy Eleven host Charleston Battery on Saturday at 4 PM ET.\n\nEscape hatch: I mostly just catch the highlights, honestly.",
+  "speech": "Here's the sports talk for Indianapolis, Wednesday, July 1. The United States play Bosnia‑Herzegovina tonight at 8 PM ET. The Indianapolis Indians beat the Omaha Storm Chasers 12‑5 yesterday. The Indians return to Omaha tonight at 8:05 PM ET. Indy Eleven host Charleston Battery on Saturday at 4 PM ET. And if it gets away from you, your out is: I mostly just catch the highlights, honestly."
+}
