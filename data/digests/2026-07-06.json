@@ -1,0 +1,34 @@
+{
+  "city": "Indianapolis",
+  "date": "2026-07-06",
+  "date_label": "Monday, July 6",
+  "generated_at": "2026-07-06T09:01:09+00:00",
+  "lines": [
+    "The United States faces Belgium tonight at 8 PM ET.",
+    "The Indiana Fever beat the Las Vegas Aces 84‑68 yesterday and sit 12‑8, second in the Eastern Conference.",
+    "The Fever travel to Los Angeles to play the Sparks on Wednesday at 10 PM ET.",
+    "The Indianapolis Indians fell 13‑3 to the Omaha Storm Chasers, dropping to 38‑49.",
+    "The Indians host the Toledo Mud Hens tomorrow at 7:05 PM ET."
+  ],
+  "line_tags": [
+    "World Cup",
+    "WNBA",
+    "WNBA",
+    "Triple‑A",
+    "Triple‑A"
+  ],
+  "escape_hatch": "I mostly just catch the highlights, honestly.",
+  "ticker": [
+    "MON JUL 6",
+    "WNBA · Indiana Fever beat Las Vegas Aces 84-68",
+    "WNBA · Indiana Fever at Los Angeles Sparks Wednesday 10:00 PM ET",
+    "FIFA WORLD CUP · United States vs Belgium today",
+    "MLB DOUBLEHEADER - GAME 1 - MAKEUP FROM MAY 5 · St. Louis Cardinals vs Milwaukee Brewers tomorrow",
+    "TRIPLE-A · Indianapolis Indians lost to Omaha Storm Chasers 13-3",
+    "TRIPLE-A · Indianapolis Indians vs Toledo Mud Hens tomorrow 7:05 PM ET",
+    "WNBA SCORING · Caitlin Clark 3rd, 21.2",
+    "WNBA SCORING · Aliyah Boston 14th, 17.1"
+  ],
+  "display": "* [World Cup] The United States faces Belgium tonight at 8 PM ET.\n\n* [WNBA] The Indiana Fever beat the Las Vegas Aces 84‑68 yesterday and sit 12‑8, second in the Eastern Conference.\n\n* [WNBA] The Fever travel to Los Angeles to play the Sparks on Wednesday at 10 PM ET.\n\n* [Triple‑A] The Indianapolis Indians fell 13‑3 to the Omaha Storm Chasers, dropping to 38‑49.\n\n* [Triple‑A] The Indians host the Toledo Mud Hens tomorrow at 7:05 PM ET.\n\nEscape hatch: I mostly just catch the highlights, honestly.",
+  "speech": "Here's the sports talk for Indianapolis, Monday, July 6. The United States faces Belgium tonight at 8 PM ET. The Indiana Fever beat the Las Vegas Aces 84‑68 yesterday and sit 12‑8, second in the Eastern Conference. The Fever travel to Los Angeles to play the Sparks on Wednesday at 10 PM ET. The Indianapolis Indians fell 13‑3 to the Omaha Storm Chasers, dropping to 38‑49. The Indians host the Toledo Mud Hens tomorrow at 7:05 PM ET. And if it gets away from you, your out is: I mostly just catch the highlights, honestly."
+}
