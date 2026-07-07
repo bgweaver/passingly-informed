@@ -1,0 +1,28 @@
+{
+  "city": "Indianapolis",
+  "date": "2026-07-07",
+  "date_label": "Tuesday, July 7",
+  "generated_at": "2026-07-07T09:00:40+00:00",
+  "lines": [
+    "Belgium beat the United States 4-1 yesterday.",
+    "The Indiana Fever (12-8, second in the Eastern Conference) play the Los Angeles Sparks tomorrow at 10:00 PM ET.",
+    "The Indianapolis Indians host the Toledo Mud Hens tonight at 7:05 PM ET."
+  ],
+  "line_tags": [
+    "World Cup",
+    "WNBA",
+    "Triple-A"
+  ],
+  "escape_hatch": "I mostly just catch the highlights, honestly.",
+  "ticker": [
+    "TUE JUL 7",
+    "WNBA · Indiana Fever at Los Angeles Sparks tomorrow 10:00 PM ET",
+    "FIFA WORLD CUP · Belgium beat United States 4-1",
+    "MLB DOUBLEHEADER - GAME 1 - MAKEUP FROM MAY 5 · St. Louis Cardinals vs Milwaukee Brewers today",
+    "TRIPLE-A · Indianapolis Indians vs Toledo Mud Hens tonight 7:05 PM ET",
+    "WNBA SCORING · Caitlin Clark 3rd, 21.2",
+    "WNBA SCORING · Aliyah Boston 14th, 17.1"
+  ],
+  "display": "* [World Cup] Belgium beat the United States 4-1 yesterday.  \n* [WNBA] The Indiana Fever (12-8, second in the Eastern Conference) play the Los Angeles Sparks tomorrow at 10:00 PM ET.  \n* [Triple-A] The Indianapolis Indians host the Toledo Mud Hens tonight at 7:05 PM ET.  \n\nEscape hatch: I mostly just catch the highlights, honestly.",
+  "speech": "Here's the sports talk for Indianapolis, Tuesday, July 7. Belgium beat the United States 4 to 1 yesterday. The Indiana Fever (12 to 8, second in the Eastern Conference) play the Los Angeles Sparks tomorrow at 10:00 PM ET. The Indianapolis Indians host the Toledo Mud Hens tonight at 7:05 PM ET. And if it gets away from you, your out is: I mostly just catch the highlights, honestly."
+}
