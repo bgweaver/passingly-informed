@@ -1,0 +1,31 @@
+{
+  "city": "Indianapolis",
+  "date": "2026-07-10",
+  "date_label": "Friday, July 10",
+  "generated_at": "2026-07-10T09:00:48+00:00",
+  "lines": [
+    "The Indiana Fever edged the Phoenix Mercury 92-89 yesterday and improve to 13-9.",
+    "The Indianapolis Indians beat the Toledo Mud Hens 6-5 yesterday, moving to 40-50 on the season.",
+    "The Fever head to Las Vegas on Sunday at 9:00 PM ET to take on the Aces.",
+    "The Indians host the Mud Hens again tonight at 7:05 PM ET."
+  ],
+  "line_tags": [
+    "WNBA",
+    "Triple-A",
+    "WNBA",
+    "Triple-A"
+  ],
+  "escape_hatch": "I mostly just catch the highlights, honestly.",
+  "ticker": [
+    "FRI JUL 10",
+    "WNBA · Indiana Fever beat Phoenix Mercury 92-89",
+    "WNBA · Indiana Fever at Las Vegas Aces Sunday 9:00 PM ET",
+    "FIFA WORLD CUP · underway",
+    "TRIPLE-A · Indianapolis Indians beat Toledo Mud Hens 6-5",
+    "TRIPLE-A · Indianapolis Indians vs Toledo Mud Hens tonight 7:05 PM ET",
+    "WNBA SCORING · Caitlin Clark 5th, 20.5",
+    "WNBA SCORING · Aliyah Boston 13th, 17.2"
+  ],
+  "display": "* [WNBA] The Indiana Fever edged the Phoenix Mercury 92-89 yesterday and improve to 13-9.  \n* [Triple-A] The Indianapolis Indians beat the Toledo Mud Hens 6-5 yesterday, moving to 40-50 on the season.  \n* [WNBA] The Fever head to Las Vegas on Sunday at 9:00 PM ET to take on the Aces.  \n* [Triple-A] The Indians host the Mud Hens again tonight at 7:05 PM ET.  \nEscape hatch: I mostly just catch the highlights, honestly.",
+  "speech": "Here's the sports talk for Indianapolis, Friday, July 10. The Indiana Fever edged the Phoenix Mercury 92 to 89 yesterday and improve to 13 to 9. The Indianapolis Indians beat the Toledo Mud Hens 6 to 5 yesterday, moving to 40 to 50 on the season. The Fever head to Las Vegas on Sunday at 9:00 PM ET to take on the Aces. The Indians host the Mud Hens again tonight at 7:05 PM ET. And if it gets away from you, your out is: I mostly just catch the highlights, honestly."
+}
