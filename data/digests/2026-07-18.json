@@ -1,0 +1,35 @@
+{
+  "city": "Indianapolis",
+  "date": "2026-07-18",
+  "date_label": "Saturday, July 18",
+  "generated_at": "2026-07-18T09:01:47+00:00",
+  "lines": [
+    "The Red Sox edged the Rays 5-3 in the second game of yesterday’s doubleheader.",
+    "The Indiana Fever beat the Seattle Storm 110-107 yesterday and sit at 15-10.",
+    "The Fever host the New York Liberty at 8 p.m. ET tonight.",
+    "Indy Eleven travel to Detroit City FC tonight at 7 p.m. ET, currently 6-3-4.",
+    "The Indianapolis Indians were on the road against the Columbus Clippers yesterday."
+  ],
+  "line_tags": [
+    "MLB",
+    "WNBA",
+    "WNBA",
+    "USL Championship",
+    "Triple‑A"
+  ],
+  "escape_hatch": "I mostly just catch the highlights, honestly.",
+  "ticker": [
+    "SAT JUL 18",
+    "WNBA · Indiana Fever beat Seattle Storm 110-107",
+    "WNBA · Indiana Fever vs New York Liberty tonight 8:00 PM ET",
+    "USL CHAMPIONSHIP · Indy Eleven at Detroit City FC tonight 7:00 PM ET",
+    "FIFA WORLD CUP · underway",
+    "MLB DOUBLEHEADER - GAME 2 · Boston Red Sox beat Tampa Bay Rays 5-3 yesterday",
+    "MLB MAKEUP FROM JULY 17 · Cleveland Guardians vs Pittsburgh Pirates today",
+    "LIVE · Indianapolis Indians at Columbus Clippers yesterday 7:05 PM ET",
+    "WNBA SCORING · Caitlin Clark 4th, 20.9",
+    "WNBA SCORING · Aliyah Boston 14th, 17.2"
+  ],
+  "display": "* [MLB] The Red Sox edged the Rays 5-3 in the second game of yesterday’s doubleheader.  \n* [WNBA] The Indiana Fever beat the Seattle Storm 110-107 yesterday and sit at 15-10.  \n* [WNBA] The Fever host the New York Liberty at 8 p.m. ET tonight.  \n* [USL Championship] Indy Eleven travel to Detroit City FC tonight at 7 p.m. ET, currently 6-3-4.  \n* [Triple‑A] The Indianapolis Indians were on the road against the Columbus Clippers yesterday.  \n\nEscape hatch: I mostly just catch the highlights, honestly.",
+  "speech": "Here's the sports talk for Indianapolis, Saturday, July 18. The Red Sox edged the Rays 5 to 3 in the second game of yesterday’s doubleheader. The Indiana Fever beat the Seattle Storm 110 to 107 yesterday and sit at 15 to 10. The Fever host the New York Liberty at 8 p.m. ET tonight. Indy Eleven travel to Detroit City FC tonight at 7 p.m. ET, currently 6 to 3-4. The Indianapolis Indians were on the road against the Columbus Clippers yesterday. And if it gets away from you, your out is: I mostly just catch the highlights, honestly."
+}
