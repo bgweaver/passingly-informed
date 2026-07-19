@@ -1,0 +1,34 @@
+{
+  "city": "Indianapolis",
+  "date": "2026-07-19",
+  "date_label": "Sunday, July 19",
+  "generated_at": "2026-07-19T09:01:04+00:00",
+  "lines": [
+    "The Yankees face the Dodgers at noon today in the makeup doubleheader.",
+    "The Indiana Fever beat the New York Liberty 108-88 yesterday and sit 16-10, first in the Eastern Conference.",
+    "The Indianapolis Indians routed the Columbus Clippers 6-1 yesterday; they’re 44-51 heading into today’s road game.",
+    "Indy Eleven fell 2-0 to Detroit City FC yesterday, moving to 6-3-5 on the season."
+  ],
+  "line_tags": [
+    "MLB",
+    "WNBA",
+    "Triple-A",
+    "USL Championship"
+  ],
+  "escape_hatch": "I mostly just catch the highlights, honestly.",
+  "ticker": [
+    "SUN JUL 19",
+    "WNBA · Indiana Fever beat New York Liberty 108-88",
+    "WNBA · Indiana Fever vs Connecticut Sun Wednesday 8:00 PM ET",
+    "USL CHAMPIONSHIP · Indy Eleven lost to Detroit City FC 2-0",
+    "FIFA WORLD CUP · underway",
+    "MLB MAKEUP FROM JULY 17 · Pittsburgh Pirates beat Cleveland Guardians 7-1 yesterday",
+    "MLB DOUBLEHEADER - GAME 1 - MAKEUP FROM JULY 19 · New York Yankees vs Los Angeles Dodgers today",
+    "TRIPLE-A · Indianapolis Indians beat Columbus Clippers 6-1",
+    "TRIPLE-A · Indianapolis Indians at Columbus Clippers today 1:05 PM ET",
+    "WNBA SCORING · Caitlin Clark 4th, 20.7",
+    "WNBA SCORING · Aliyah Boston 13th, 17.1"
+  ],
+  "display": "* [MLB] The Yankees face the Dodgers at noon today in the makeup doubleheader.  \n* [WNBA] The Indiana Fever beat the New York Liberty 108-88 yesterday and sit 16-10, first in the Eastern Conference.  \n* [Triple-A] The Indianapolis Indians routed the Columbus Clippers 6-1 yesterday; they’re 44-51 heading into today’s road game.  \n* [USL Championship] Indy Eleven fell 2-0 to Detroit City FC yesterday, moving to 6-3-5 on the season.  \n\nEscape hatch: I mostly just catch the highlights, honestly.",
+  "speech": "Here's the sports talk for Indianapolis, Sunday, July 19. The Yankees face the Dodgers at noon today in the makeup doubleheader. The Indiana Fever beat the New York Liberty 108 to 88 yesterday and sit 16 to 10, first in the Eastern Conference. The Indianapolis Indians routed the Columbus Clippers 6 to 1 yesterday; they’re 44 to 51 heading into today’s road game. Indy Eleven fell 2 to 0 to Detroit City FC yesterday, moving to 6 to 3-5 on the season. And if it gets away from you, your out is: I mostly just catch the highlights, honestly."
+}
