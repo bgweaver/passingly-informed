@@ -1,0 +1,30 @@
+{
+  "city": "Indianapolis",
+  "date": "2026-07-31",
+  "date_label": "Friday, July 31",
+  "generated_at": "2026-07-31T09:00:27+00:00",
+  "lines": [
+    "The Indianapolis Indians beat the Louisville Bats 12‑7 yesterday.",
+    "The Indians are on the road again tonight, facing Louisville at 7:15 PM ET.",
+    "The Indiana Fever, 18‑10 and first in the Eastern Conference, play at Portland Fire tonight at 10 PM ET.",
+    "Indy Eleven travel to San Antonio FC tonight, holding a 6‑3‑6 record."
+  ],
+  "line_tags": [
+    "Triple-A",
+    "Triple-A",
+    "WNBA",
+    "USL Championship"
+  ],
+  "escape_hatch": "I mostly just catch the highlights, honestly.",
+  "ticker": [
+    "FRI JUL 31",
+    "WNBA · Indiana Fever at Portland Fire tonight 10:00 PM ET",
+    "USL CHAMPIONSHIP · Indy Eleven at San Antonio FC tonight 9:00 PM ET",
+    "TRIPLE-A · Indianapolis Indians beat Louisville Bats 12-7",
+    "TRIPLE-A · Indianapolis Indians at Louisville Bats tonight 7:15 PM ET",
+    "WNBA SCORING · Caitlin Clark 4th, 21.5",
+    "WNBA SCORING · Aliyah Boston 15th, 17.1"
+  ],
+  "display": "* [Triple-A] The Indianapolis Indians beat the Louisville Bats 12‑7 yesterday.  \n* [Triple-A] The Indians are on the road again tonight, facing Louisville at 7:15 PM ET.  \n* [WNBA] The Indiana Fever, 18‑10 and first in the Eastern Conference, play at Portland Fire tonight at 10 PM ET.  \n* [USL Championship] Indy Eleven travel to San Antonio FC tonight, holding a 6‑3‑6 record.  \n\nEscape hatch: I mostly just catch the highlights, honestly.",
+  "speech": "Here's the sports talk for Indianapolis, Friday, July 31. The Indianapolis Indians beat the Louisville Bats 12‑7 yesterday. The Indians are on the road again tonight, facing Louisville at 7:15 PM ET. The Indiana Fever, 18‑10 and first in the Eastern Conference, play at Portland Fire tonight at 10 PM ET. Indy Eleven travel to San Antonio FC tonight, holding a 6‑3‑6 record. And if it gets away from you, your out is: I mostly just catch the highlights, honestly."
+}
