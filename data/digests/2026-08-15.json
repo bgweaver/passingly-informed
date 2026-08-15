@@ -1,0 +1,22 @@
+{
+  "city": "Indianapolis",
+  "date": "2026-08-15",
+  "date_label": "Saturday, August 15",
+  "generated_at": "2026-08-15T09:00:47+00:00",
+  "lines": [
+    "The Indianapolis Indians were beaten 9-1 by the Nashville Sounds yesterday, dropping to 58-60.",
+    "The Indians head to Nashville tonight at 7:35 PM ET for the rematch."
+  ],
+  "line_tags": [
+    "Triple-A",
+    "Triple-A"
+  ],
+  "escape_hatch": "I mostly just catch the highlights, honestly.",
+  "ticker": [
+    "SAT AUG 15",
+    "TRIPLE-A · Indianapolis Indians lost to Nashville Sounds 9-1",
+    "TRIPLE-A · Indianapolis Indians at Nashville Sounds tonight 7:35 PM ET"
+  ],
+  "display": "* [Triple-A] The Indianapolis Indians were beaten 9-1 by the Nashville Sounds yesterday, dropping to 58-60.  \n* [Triple-A] The Indians head to Nashville tonight at 7:35 PM ET for the rematch.  \n\nEscape hatch: I mostly just catch the highlights, honestly.",
+  "speech": "Here's the sports talk for Indianapolis, Saturday, August 15. The Indianapolis Indians were beaten 9 to 1 by the Nashville Sounds yesterday, dropping to 58 to 60. The Indians head to Nashville tonight at 7:35 PM ET for the rematch. And if it gets away from you, your out is: I mostly just catch the highlights, honestly."
+}
