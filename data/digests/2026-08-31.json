@@ -1,0 +1,22 @@
+{
+  "city": "Indianapolis",
+  "date": "2026-08-31",
+  "date_label": "Monday, August 31",
+  "generated_at": "2026-08-31T09:00:31+00:00",
+  "lines": [
+    "The Indianapolis Indians fell to the Columbus Clippers 9-6 yesterday, dropping to 65-67.",
+    "The Indians head to Toledo tomorrow night to face the Mud Hens at 6:35 PM ET."
+  ],
+  "line_tags": [
+    "Triple-A",
+    "Triple-A"
+  ],
+  "escape_hatch": "I mostly just catch the highlights, honestly.",
+  "ticker": [
+    "MON AUG 31",
+    "TRIPLE-A · Indianapolis Indians lost to Columbus Clippers 9-6",
+    "TRIPLE-A · Indianapolis Indians at Toledo Mud Hens tomorrow 6:35 PM ET"
+  ],
+  "display": "* [Triple-A] The Indianapolis Indians fell to the Columbus Clippers 9-6 yesterday, dropping to 65-67.  \n* [Triple-A] The Indians head to Toledo tomorrow night to face the Mud Hens at 6:35 PM ET.  \nEscape hatch: I mostly just catch the highlights, honestly.",
+  "speech": "Here's the sports talk for Indianapolis, Monday, August 31. The Indianapolis Indians fell to the Columbus Clippers 9 to 6 yesterday, dropping to 65 to 67. The Indians head to Toledo tomorrow night to face the Mud Hens at 6:35 PM ET. And if it gets away from you, your out is: I mostly just catch the highlights, honestly."
+}
