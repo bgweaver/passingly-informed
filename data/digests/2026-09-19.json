@@ -1,0 +1,22 @@
+{
+  "city": "Indianapolis",
+  "date": "2026-09-19",
+  "date_label": "Saturday, September 19",
+  "generated_at": "2026-09-19T09:00:30+00:00",
+  "lines": [
+    "The Indianapolis Indians lost 8-7 to the Gwinnett Stripers yesterday, slipping to a .500 record at 74-74.",
+    "Indianapolis returns to Gwinnett tonight at 6:05 PM ET."
+  ],
+  "line_tags": [
+    "Triple-A",
+    "Triple-A"
+  ],
+  "escape_hatch": "I mostly just catch the highlights, honestly.",
+  "ticker": [
+    "SAT SEP 19",
+    "TRIPLE-A · Indianapolis Indians lost to Gwinnett Stripers 8-7",
+    "TRIPLE-A · Indianapolis Indians at Gwinnett Stripers tonight 6:05 PM ET"
+  ],
+  "display": "* [Triple-A] The Indianapolis Indians lost 8-7 to the Gwinnett Stripers yesterday, slipping to a .500 record at 74-74.  \n* [Triple-A] Indianapolis returns to Gwinnett tonight at 6:05 PM ET.  \n\nEscape hatch: I mostly just catch the highlights, honestly.",
+  "speech": "Here's the sports talk for Indianapolis, Saturday, September 19. The Indianapolis Indians lost 8 to 7 to the Gwinnett Stripers yesterday, slipping to a .500 record at 74 to 74. Indianapolis returns to Gwinnett tonight at 6:05 PM ET. And if it gets away from you, your out is: I mostly just catch the highlights, honestly."
+}
