@@ -1,0 +1,19 @@
+{
+  "city": "Indianapolis",
+  "date": "2026-09-21",
+  "date_label": "Monday, September 21",
+  "generated_at": "2026-09-21T09:00:49+00:00",
+  "lines": [
+    "The Indianapolis Indians beat the Gwinnett Stripers 9-6 yesterday and are 75-75 on the season."
+  ],
+  "line_tags": [
+    "Triple-A"
+  ],
+  "escape_hatch": "I mostly just catch the highlights, honestly.",
+  "ticker": [
+    "MON SEP 21",
+    "TRIPLE-A · Indianapolis Indians beat Gwinnett Stripers 9-6"
+  ],
+  "display": "* [Triple-A] The Indianapolis Indians beat the Gwinnett Stripers 9-6 yesterday and are 75-75 on the season.  \nEscape hatch: I mostly just catch the highlights, honestly.",
+  "speech": "Here's the sports talk for Indianapolis, Monday, September 21. The Indianapolis Indians beat the Gwinnett Stripers 9 to 6 yesterday and are 75 to 75 on the season. And if it gets away from you, your out is: I mostly just catch the highlights, honestly."
+}
